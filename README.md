@@ -1,0 +1,1 @@
+# galaxies-of-legend-foundry
