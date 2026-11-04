@@ -1,12 +1,13 @@
-import { ATTRIBUTES, createDraft, evaluate } from "../src/rules/creation.mjs";
+import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.mjs";
 
 import { advancement, createPlay, deathRoll, restoreHP, roll, takeDamage, MEDICAL_DOSES, removeItem, useMedicalDose } from "../src/rules/play.mjs";
 import { portable, readPortable } from "../src/rules/portable.mjs";
 import { sheet } from "./sheet.mjs";
+import { builderPicker } from "./builder-picker.mjs";
 
 const libraryKey = "gol-character-library-v2";
 const key = "gol-character-workshop-v1";
-const steps = ["Identity", "Origins", "Level 0", "Class", "Level 1", "Equipment", "Review"];
+const steps = ["Identity & attributes", "Ancestry & languages", "Culture & background", "Early learning", "Class", "Heroic learning", "Equipment", "Review"];
 const app = document.querySelector("#app");
 const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -18,9 +19,9 @@ const rulesMarkup = text => e(text)
 let catalog;
 let draft = createDraft();
 let step = 0;
-let cardQuery = "";
+let pickerQuery = "";
 let popup = null;
-let showLocked = false;
+
 let storageAvailable = true;
 let model;
 let play = null;
@@ -36,7 +37,9 @@ try {
     mode = stored.mode === "sheet" && play ? "sheet" : "builder";
     tab = stored.tab ?? "Main";
     saveId = stored.saveId ?? null;
-    step = Math.min(6, Math.max(0, Number(stored.step) || 0));
+    const oldStep = Math.max(0, Number(stored.step) || 0);
+    step = stored.builderVersion === 2 ? Math.min(STEP.review, oldStep)
+      : [STEP.identity, STEP.ancestry, STEP.early, STEP.class, STEP.heroic, STEP.equipment, STEP.review][oldStep] ?? STEP.review;
   }
 } catch { storageAvailable = false; }
 
@@ -70,56 +73,77 @@ function abilityReason(card, phase) {
 
 function identity() {
   return `<p>Give your explorer a name and assign six attributes. Use values from −2 to +2 with a combined total of +3.</p>
-  <div class="fields"><label>Explorer name<input data-field="name" value="${e(draft.name)}" maxlength="80"></label>
-  <label>Pronouns<input data-field="pronouns" value="${e(draft.pronouns)}" maxlength="40"></label></div>
+  <label>Explorer name<input data-field="name" value="${e(draft.name)}" maxlength="80"></label>
   <div class="attributes">${ATTRIBUTES.map(name => `<label>${name}<select data-attribute="${name}">${[-2, -1, 0, 1, 2].map(value => option(value, value > 0 ? `+${value}` : value, draft.attributes[name])).join("")}</select></label>`).join("")}</div>
   <p class="callout">Attribute total <strong>${model.attributeTotal >= 0 ? "+" : ""}${model.attributeTotal}</strong> <span>Target +3</span></p>`;
 }
-function origins() {
+function ancestry() {
   const selected = model.ancestry;
-  const picked = [byId(catalog.cultures, draft.culture), byId(catalog.backgrounds, draft.background)].filter(Boolean);
-  return `<p>Choose a lineage and two traits, then choose the community and work that shaped you.</p>
-  <div class="lineages">${catalog.ancestries.map(a =>
-    `<button type="button" class="lineage" aria-pressed="${a.id === draft.ancestry}" data-action="ancestry" data-id="${a.id}">
-    <img src="assets/lineage-${a.id}.webp" alt=""><span>${e(a.name)}</span></button>`).join("")}</div>
-  ${selected ? `<div class="decision-summary"><strong>${e(selected.name)} · ${e(selected.origin)}</strong>${button("Ancestry details", "ancestry-info", selected.id)}</div><h3>${e(selected.name)} traits <small>${draft.traits.length} / 2</small></h3><div class="choices">${selected.traits.map(t =>
-    `<label class="choice"><input type="checkbox" data-list="traits" value="${t.id}" ${draft.traits.includes(t.id) ? "checked" : ""} ${draft.traits.length === 2 && !draft.traits.includes(t.id) ? "disabled" : ""}><span><strong>${e(t.name)}</strong><small>${e(t.text)}</small></span></label>`).join("")}</div>` : ""}
-  <div class="fields">${select("culture", "Culture", catalog.cultures)}${select("background", "Background", catalog.backgrounds)}</div>
-  ${picked.map(x => `<p class="callout"><strong>${e(x.name)}</strong> · ${e(x.rank)} 1 and ${e(cardName(x.card))}. <span>+${x.coins} coins</span> ${button("Read grant", "origin-info", x.id)}</p>`).join("")}
-  <div class="fields"><label>Shared language<input value="Galactic Standard" readonly></label>
-  <label>Other ordinary language<input list="language-options" data-field="language" value="${e(draft.language)}" maxlength="80"></label></div>
+  return `<p>Choose your ancestry, two traits, and a home language. Galactic Standard is already known.</p>
+  <div class="lineage-grid">${catalog.ancestries.map(a => `<article class="choice-card ${a.id === draft.ancestry ? "chosen" : ""}">
+    <img src="assets/lineage-${a.id}.webp" alt=""><h3>${e(a.name)}</h3>
+    <p>${e(a.origin)} · +${a.hp} HP · Speed ${a.speed} · +${a.coins} coins</p>
+    <div class="row-actions">${button("Read rules", "ancestry-info", a.id)}
+    ${button(a.id === draft.ancestry ? "Selected" : "Choose", "ancestry", a.id, `aria-pressed="${a.id === draft.ancestry}"`)}</div></article>`).join("")}</div>
+  <h3>Choose two traits <small>${draft.traits.length} / 2</small></h3>
+  ${selected ? `<div class="choices trait-grid">${selected.traits.map(t =>
+    `<div class="choice"><label><input type="checkbox" data-list="traits" value="${t.id}" ${draft.traits.includes(t.id) ? "checked" : ""} ${draft.traits.length === 2 && !draft.traits.includes(t.id) ? "disabled" : ""}><span>${e(t.name)}</span></label>
+    ${button("Read", "trait-info", t.id, `aria-label="Read ${e(t.name)}"`)}</div>`).join("")}</div>` : "<p>Choose an ancestry to see its traits.</p>"}
+  <label>Home language<input list="language-options" data-field="language" value="${e(draft.language)}" maxlength="80" placeholder="Choose or enter an ordinary language"></label>
   <datalist id="language-options">${catalog.languages.map(x => option(x, x, "")).join("")}</datalist>`;
 }
+
+function origins() {
+  return `<p>Each choice grants the listed discipline rank and ability. Duplicate grants add 1 DP to Early learning.</p>
+  <div class="origin-grid">${["culture", "background"].map(kind => {
+    const rows = catalog[kind + "s"];
+    const chosen = byId(rows, draft[kind]);
+    const label = kind === "culture" ? "Culture" : "Background";
+    return `<section class="choice-card">${select(kind, label, rows.map(row => ({ id: row.id,
+      name: `${row.name} — ${row.rank} 1 + ${cardName(row.card)}` })))}
+    ${chosen ? `<div class="origin-grants">${button(chosen.name, "origin-info", chosen.id, 'class="reference-link"')}
+    <p>${e(chosen.intro)}</p><span class="grant-chip">${e(chosen.rank)} 1</span>
+    ${button(cardName(chosen.card), "detail", chosen.card, 'class="reference-link"')}
+    <span class="grant-chip">+${chosen.coins} coins</span></div>` : ""}</section>`;
+  }).join("")}</div>${model.duplicates ? `<p class="callout">Duplicate grants add <strong>+${model.duplicates} DP</strong> to Early learning.</p>` : ""}`;
+}
+
 function training(phase) {
-  const choices = phase ? model.level1Choices : model.level0Choices;
-  const visible = showLocked ? catalog.cards.filter(card => card.level !== "Universal") : choices;
-  const eligible = new Set(choices.map(card => card.id));
-  const filtered = visible.filter(x => `${x.name} ${x.requirement} ${x.action}`.toLowerCase().includes(cardQuery.toLowerCase()));
-  const ranks = phase && model.profession ? catalog.disciplines.filter(d => (model.ranks[d] ?? 0) < 3) : [];
   const purchases = model.ledger.filter(row => row.phase === phase);
   return `<p>${phase ? "Spend this separate pool on discipline ranks and eligible Novice abilities." : "Buy eligible Novice abilities using origin grants. Class grants and discipline purchases come later."} Unspent DP expires at creation.</p>
-  <p class="callout"><strong>${model.remaining[phase]} / ${model.pools[phase]} DP</strong> <span>remaining in Level ${phase}</span></p>
-  ${ranks.length ? `<div class="inline"><label>Buy next discipline rank<select id="rank-choice">${ranks.map(d => {
-    const rank = (model.ranks[d] ?? 0) + 1;
-    return option(d, `${d} ${rank} · ${model.profession.prices[d][rank - 1]} DP`, "");
-  }).join("")}</select></label>${button("Review rank", "rank", "", 'class="primary"')}</div>` : ""}
-  <h3>Purchase ledger</h3>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) => `<li>${e(x.label)} <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>` : "<p class='muted'>No purchases yet.</p>"}
-  <h3>Ability choices</h3><label class="radio"><input type="checkbox" id="show-locked" ${showLocked ? "checked" : ""}> Show unavailable abilities and requirements</label><label>Filter abilities<input id="card-search" type="search" value="${e(cardQuery)}" placeholder="Name, discipline or action"></label>
-  <div class="catalog">${filtered.length ? filtered.map(x => `<article><div><strong>${e(x.name)}</strong><small>${e(x.action)} · ${e(x.requirement)} · ${x.dp} DP</small>${eligible.has(x.id) ? "" : `<small class="unavailable">${e(abilityReason(x, phase))}</small>`}</div><div class="row-actions">${button("Read", "detail", x.id)}${eligible.has(x.id) ? button("Buy", "buy", x.id, x.dp > model.remaining[phase] ? "disabled" : "") : ""}</div></article>`).join("") : "<p class='muted'>No matching eligible abilities.</p>"}</div>`;
+  <p class="callout"><strong>${model.remaining[phase]} / ${model.pools[phase]} DP</strong> remaining</p>
+  <div class="row-actions">${button("Learn abilities", "open-picker", "ability", 'class="primary"')}
+  ${phase ? button("Learn disciplines", "open-picker", "discipline") : ""}</div>
+  <h3>Purchase ledger</h3>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) =>
+    `<li>${e(x.label)} <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
+    : "<p class='muted'>No purchases yet.</p>"}`;
 }
 function chooseClass() {
   const current = model.profession;
-  return `<p>Choose a class, two starting disciplines and one level-1 signature.</p>
-  <div class="class-grid">${catalog.classes.map(x => `<article><button type="button" aria-pressed="${x.id === draft.classId}" data-action="class" data-id="${x.id}"><strong>${e(x.name)}</strong><small>${e(x.role)}</small><span>${e(x.minimums.join(" · "))} ≥ 0 · ${x.minimums.every(key => draft.attributes[key] >= 0) ? "Eligible" : "Minimums unmet"}</span></button>${button("Class details", "class-info", x.id)}</article>`).join("")}</div>
-  ${current ? `<h3>Starting disciplines <small>${draft.startingRanks.length} / 2</small></h3><div class="chips">${current.ranks.map(x => `<label><input type="checkbox" data-list="startingRanks" value="${e(x)}" ${draft.startingRanks.includes(x) ? "checked" : ""} ${draft.startingRanks.length === 2 && !draft.startingRanks.includes(x) ? "disabled" : ""}>${e(x)}</label>`).join("")}</div>
-  <h3>Level-1 signatures</h3><div class="catalog">${current.signatures.map(id => byId(catalog.cards, id)).filter(x => x?.level === "1").map(x => `<article><label class="radio"><input type="radio" name="signature" data-field="signature" value="${x.id}" ${draft.signature === x.id ? "checked" : ""}>${e(x.name)}</label>${button("Read", "detail", x.id)}</article>`).join("")}</div>` : ""}`;
+  const eligible = profession => profession.minimums.every(key => draft.attributes[key] >= 0);
+  const choices = [...catalog.classes].sort((a, b) => Number(eligible(b)) - Number(eligible(a)));
+  return `<p>Classes you qualify for appear first. Choose two starting disciplines and one signature.</p>
+  <div class="class-grid">${choices.map(x => `<article class="choice-card ${x.id === draft.classId ? "chosen" : ""}">
+    <h3>${e(x.name)}</h3><p>${e(x.role)}</p><p>+${x.hp} HP · +${x.coins} coins</p>
+    <p>${eligible(x) ? "Meets requirements" : `Requires ${e(x.minimums.filter(key => draft.attributes[key] < 0).join(", "))} ≥ 0`}</p>
+    <div class="row-actions">${button("Read class", "class-info", x.id)}
+    ${button(x.id === draft.classId ? "Selected" : "Choose", "class", x.id,
+      `aria-pressed="${x.id === draft.classId}" ${eligible(x) ? "" : "disabled"}`)}</div></article>`).join("")}</div>
+  ${current ? `<h3>Starting disciplines <small>${draft.startingRanks.length} / 2</small></h3>
+  <div class="chips">${current.ranks.map(x => `<label><input type="checkbox" data-list="startingRanks" value="${e(x)}"
+    ${draft.startingRanks.includes(x) ? "checked" : ""} ${draft.startingRanks.length === 2 && !draft.startingRanks.includes(x) ? "disabled" : ""}>
+    ${e(x)} 1${model.earlyRanks[x] ? " · already known, +1 DP if chosen" : ""}</label>`).join("")}</div>
+  <h3>Level-1 signature</h3><div class="signature-grid">${current.signatures.map(id => byId(catalog.cards, id)).filter(x => x?.level === "1").map(x =>
+    `<article class="choice-card ${draft.signature === x.id ? "chosen" : ""}"><h3>${e(x.name)}</h3><p>${e(x.action)} · ${e(x.attribute)} · free milestone choice</p>
+    <div class="row-actions">${button("Read signature", "detail", x.id)}
+    ${button(draft.signature === x.id ? "Selected" : "Choose", "select-signature", x.id, `aria-pressed="${draft.signature === x.id}"`)}</div></article>`).join("")}</div>` : ""}`;
 }
 function equipment() {
   const hands = model.equipment.flatMap((item, index) => item?.hands ? [{ id: String(index + 1), name: item.name }] : []);
   return `<p>Buy equipment with starting coins, then record what is in each hand.</p>
   <p class="callout"><strong>${model.coins - model.cost} / ${model.coins} coins</strong><span>${model.bulk} / ${model.capacity} Bulk</span></p>
   ${model.bulk > model.capacity ? "<p class='warning'>Over Capacity. Apply the book’s encumbrance ruling before recording final Speed.</p>" : ""}
-  <div class="inline"><label>Market<select id="gear-choice">${catalog.equipment.map(x => option(x.id, `${x.name} · ${x.price} coins · Bulk ${x.bulk}`, "")).join("")}</select></label>${button("Review gear", "gear", "", 'class="primary"')}</div>
+  ${button("Buy inventory items", "open-picker", "equipment", 'class="primary"')}
   <h3>Carried gear</h3><ul class="ledger">${model.equipment.map((x, index) => `<li>${e(x?.name ?? "Unavailable gear")} <span>${x?.price ?? 0} coins</span>${button("Remove", "remove-gear", index)}</li>`).join("")}</ul>
   <div class="fields">${[0, 1].map(i => `<label>${i ? "Right" : "Left"} hand<select data-hand="${i}">${option("", "Empty", draft.hands[i])}${hands.map(x => option(x.id, x.name, draft.hands[i])).join("")}</select></label>`).join("")}</div>`;
 }
@@ -129,16 +153,22 @@ function review() {
   <div class="fields"><div><strong>Identity</strong><p>${e(model.ancestry?.name)} · ${e(model.profession?.name)}</p><p>Galactic Standard${draft.language ? ", " + e(draft.language) : ""}</p></div>
   <div><strong>Disciplines</strong><p>${Object.entries(model.ranks).map(([d, n]) => `${e(d)} ${n}`).join(" · ") || "None yet"}</p></div></div>
   <h3>Known abilities</h3><div class="catalog">${model.owned.map(id => `<article><strong>${e(cardName(id))}</strong>${button("Read", "detail", id)}</article>`).join("")}</div>
+  <details class="sheet-group"><summary>Creation ledger</summary>
+  ${facts([["Early DP spent", model.pools[0] - model.remaining[0]], ["Early DP expiring", model.remaining[0]],
+    ["Heroic DP spent", model.pools[1] - model.remaining[1]], ["Heroic DP expiring", model.remaining[1]],
+    ["Starting coins left", model.coins - model.cost], ["Bulk / Capacity", `${model.bulk} / ${model.capacity}`]])}
+  <ul class="ledger">${model.ledger.map(row => `<li>${row.phase ? "Heroic" : "Early"} · ${e(row.label)}
+    <span>${row.valid ? row.price + " DP" : "Needs review"}</span></li>`).join("")}</ul></details>
   <p class="muted">Start with zero wounds and death marks. Unspent creation DP expires.</p>
-  ${button("Verify character", "verify", "", 'class="primary"')}
+  ${model.errors.length ? button("Review missing choices", "review-issues", "") : '<p class="callout"><strong>Creation complete</strong></p>'}
   ${button("Open character sheet", "sheet", "", model.errors.length ? "disabled" : 'class="primary"')}
   ${button("Download explorer JSON", "export", "", `class="primary" ${model.errors.length ? "disabled" : ""}`)}
   ${button("Start another draft", "reset", "")}`;
 }
-const renderers = [identity, origins, () => training(0), chooseClass, () => training(1), equipment, review];
+const renderers = [identity, ancestry, origins, () => training(0), chooseClass, () => training(1), equipment, review];
 
 function persist() {
-  try { localStorage.setItem(key, JSON.stringify({ draft, step, play, mode, tab, saveId })); }
+  try { localStorage.setItem(key, JSON.stringify({ builderVersion: 2, draft, step, play, mode, tab, saveId })); }
   catch { storageAvailable = false; }
 }
 
@@ -158,10 +188,20 @@ function equip(hands, items, side, value) {
   else if (items[Number(hands[1 - side]) - 1]?.hands === 2) hands[1 - side] = "";
 }
 
+const issueList = issues => issues.length
+  ? `<aside class="warning" aria-label="Choices to review"><strong>Choices to review</strong><ul>${issues.map(issue =>
+    `<li>${e(issue.message)}${step === STEP.review ? " " + button("Go to step", "step", issue.stage) : ""}</li>`).join("")}</ul></aside>` : "";
+
+function closePopup() {
+  const closing = popup;
+  popup = closing?.returnTo ?? null;
+  render(popup ? "#picker-search" : closing?.restore);
+}
+
 function render(focusSelector) {
   model = evaluate(draft, catalog);
   persist();
-  const errors = step === 6 ? model.errors : model.errors.filter(x => x.stage === step);
+  const errors = step === STEP.review ? model.errors : model.errors.filter(x => x.stage === step);
 
   dev = play ? advancement(play, model, catalog) : null;
   const toolbar = `<div class="workshop-toolbar" aria-label="Character files">
@@ -173,28 +213,32 @@ function render(focusSelector) {
     ${steps.map((title, i) => `<button type="button" data-action="step" data-id="${i}" ${i === step ? 'aria-current="step"' : ""}><span>0${i + 1}</span>${title}</button>`).join("")}</nav>
     <section class="stage"><div class="eyebrow">EXPLORER CREATION / STEP 0${step + 1}</div><h1 tabindex="-1">${steps[step]}</h1>
     ${renderers[step]()}
-    ${errors.length ? `<aside class="warning" aria-label="Choices to review"><strong>Choices to review</strong><ul>${errors.map(x => `<li>${e(x.message)}</li>`).join("")}</ul></aside>` : ""}
-    <footer class="controls">${step ? button("← Back", "step", step - 1) : "<span></span>"}${step < 6 ? button("Verify & continue →", "continue", step + 1, 'class="primary"') : ""}</footer></section>
+    <div id="step-issues">${issueList(errors)}</div>
+    <footer class="controls">${step ? button("← Back", "step", step - 1) : "<span></span>"}${step < STEP.review ? button("Continue →", "continue", step + 1, 'class="primary"') : ""}</footer></section>
     <aside class="summary"><div class="eyebrow">LIVE CHARACTER</div>
     ${model.ancestry ? `<img class="portrait" src="assets/lineage-${model.ancestry.id}.webp" alt="">` : '<div class="placeholder" aria-hidden="true">◈</div>'}
     <h2>${e(draft.name || "New explorer")}</h2><p>${e([model.ancestry?.name, model.profession?.name].filter(Boolean).join(" · ") || "Level 1 draft")}</p>
     <dl><div><dt>HP</dt><dd>${model.hp}</dd></div><div><dt>Base Speed</dt><dd>${model.speed}</dd></div><div><dt>Grit</dt><dd>${model.grit}</dd></div><div><dt>Coins</dt><dd>${model.coins - model.cost}</dd></div></dl>
     <p class="muted">${storageAvailable ? "Draft saved in this browser." : "Browser storage is unavailable."}</p></aside></div>
     `;
-  const modal = `<dialog id="ability-detail" aria-labelledby="ability-title">${popup ? `<h2 id="ability-title">${e(popup.title)}</h2>
-    ${popup.body}<div class="dialog-actions"><form method="dialog"><button>Close</button></form>
+  const oldPickerResults = app.querySelector(".picker-results");
+  const pickerScroll = oldPickerResults?.scrollTop ?? popup?.scroll ?? 0;
+  const picker = popup?.picker;
+  const modalBody = picker ? builderPicker({ kind: picker, phase: step === STEP.early ? 0 : 1,
+    query: pickerQuery, catalog, model, e, button, abilityReason, development: mode === "sheet" ? dev : null }) : popup?.body;
+  const modal = `<dialog id="ability-detail" class="${picker ? "picker-dialog" : ""}" aria-labelledby="ability-title">${popup ? `<h2 id="ability-title">${e(popup.title)}</h2>
+    ${modalBody}<div class="dialog-actions">${popup.returnTo ? button("Back to choices", "picker-back", "") : ""}
+    ${button("Close", "close-popup", "")}
     ${popup.confirm ? button(popup.confirm.label, popup.confirm.action, popup.confirm.id, 'class="primary"') : ""}</div>` : ""}</dialog>`;
   app.innerHTML = toolbar + (mode === "sheet" ? sheet({ draft, play, model, dev, catalog, tab, e, button, facts }) : builder) + modal;
   if (popup) {
     const dialog = app.querySelector("dialog");
-    const displayed = popup;
-    dialog.addEventListener("close", () => {
-      if (popup !== displayed) return;
-      const restore = displayed.restore;
-      popup = null;
-      if (restore) app.querySelector(restore)?.focus();
-    }, { once: true });
+    dialog.addEventListener("cancel", event => {
+      event.preventDefault();
+      closePopup();
+    });
     dialog.showModal();
+    if (picker) dialog.querySelector(".picker-results").scrollTop = pickerScroll;
   }
   if (focusSelector) app.querySelector(focusSelector)?.focus();
 }
@@ -210,7 +254,7 @@ app.addEventListener("change", event => {
         const imported = readPortable(JSON.parse(await file.text()));
         draft = imported.draft; play = imported.play; saveId = null; popup = null;
         mode = play && !evaluate(draft, catalog).errors.length ? "sheet" : "builder";
-        step = 6; tab = "Main"; render("h1");
+        step = STEP.review; tab = "Main"; render("h1");
       } catch (error) { popup = { title: "Import failed", body: `<p>${e(error.message)}</p>` }; render(); }
     })();
     return;
@@ -223,11 +267,6 @@ app.addEventListener("change", event => {
   if (input.dataset.playField === "coins") {
     if (Number.isInteger(input.valueAsNumber) && input.valueAsNumber >= 0) play.coins = input.valueAsNumber;
     render('[data-play-field="coins"]');
-    return;
-  }
-  if (input.id === "show-locked") {
-    showLocked = input.checked;
-    render("#show-locked");
     return;
   }
   const { field, attribute, list, hand } = input.dataset;
@@ -248,40 +287,33 @@ app.addEventListener("input", event => {
   if (input.dataset.field && input.type === "text") {
     draft[input.dataset.field] = input.value;
     model = evaluate(draft, catalog);
+    app.querySelector("#step-issues").innerHTML = issueList(model.errors.filter(issue => issue.stage === step));
     persist();
     if (input.dataset.field === "name") app.querySelector(".summary h2").textContent = input.value || "New explorer";
     return;
   }
-  if (input.id !== "card-search") return;
-  cardQuery = event.target.value;
-  render("#card-search");
+  if (input.id !== "picker-search") return;
+  pickerQuery = input.value;
+  const caret = input.selectionStart;
+  render("#picker-search");
+  if (caret !== null) app.querySelector("#picker-search").setSelectionRange(caret, caret);
 });
 
 app.addEventListener("click", event => {
   const trigger = event.target.closest("[data-action]");
   if (!trigger) return;
   const { action, id } = trigger.dataset;
-  const purchases = step === 2 ? draft.level0 : draft.level1;
+  const purchases = step === STEP.early ? draft.level0 : draft.level1;
   const restore = `[data-action="${action}"][data-id="${CSS.escape(id)}"]`;
   const open = (title, body, confirm) => {
-    popup = { title, body, confirm, restore };
+    if (popup?.picker) popup.scroll = app.querySelector(".picker-results")?.scrollTop ?? 0;
+    popup = { title, body, confirm, restore, returnTo: popup?.picker ? popup : undefined };
     render();
   };
-  const showVerification = (rows, next) => open(rows.length ? "Review these choices" : "Choices verified",
-    rows.length ? `<ul class="verify-list">${rows.map(row =>
-      `<li><strong>${e(steps[row.stage])}</strong> · ${e(row.message)} ${button("Go to step", "step", row.stage)}</li>`).join("")}</ul>`
-      : "<p>Your selections meet the current rules for this step.</p>" + facts([
-        [["Attribute total", model.attributeTotal]],
-        [["Ancestry", model.ancestry?.name], ["Traits", model.traits.length], ["Level-0 duplicate DP", model.duplicates]],
-        [["Level-0 DP spent", model.pools[0] - model.remaining[0]], ["Expires at creation", model.remaining[0]]],
-        [["Class", model.profession?.name], ["Signature", cardName(draft.signature)], ["Starting ranks", draft.startingRanks.join(", ")]],
-        [["Level-1 DP spent", model.pools[1] - model.remaining[1]], ["Expires at creation", model.remaining[1]]],
-        [["Coins remaining", model.coins - model.cost], ["Bulk / Capacity", `${model.bulk} / ${model.capacity}`]],
-        [["Starting HP", model.hp], ["Starting Grit", model.grit], ["Base Speed", model.speed]],
-      ][step]),
-    !rows.length && next !== undefined ? { label: "Continue", action: "step", id: next } : undefined);
+  const showVerification = rows => open("Review these choices", `<ul class="verify-list">${rows.map(row =>
+    `<li><strong>${e(steps[row.stage])}</strong> · ${e(row.message)} ${button("Go to step", "step", row.stage)}</li>`).join("")}</ul>`);
   switch (action) {
-    case "builder": popup = null; mode = "builder"; step = 6; render("h1"); return;
+    case "builder": popup = null; mode = "builder"; step = STEP.review; render("h1"); return;
     case "sheet":
       if (model.errors.length) { showVerification(model.errors); return; }
       if (!play) { play = createPlay(model); play.hands = [...draft.hands]; }
@@ -319,7 +351,7 @@ app.addEventListener("click", event => {
         const imported = readPortable(record.character);
         draft = imported.draft; play = imported.play; saveId = id; popup = null;
         mode = play && !evaluate(draft, catalog).errors.length ? "sheet" : "builder";
-        step = 6; tab = "Main"; render("h1");
+        step = STEP.review; tab = "Main"; render("h1");
       } catch (error) { open("Load failed", `<p>${e(error.message)}</p>`); }
       return;
     }
@@ -330,9 +362,18 @@ app.addEventListener("click", event => {
       if (saveId === id) saveId = null;
       popup = null; break;
     case "import": app.querySelector("#import-file").click(); return;
-    case "step": popup = null; step = Number(id); cardQuery = ""; render("h1"); return;
-    case "continue": showVerification(model.errors.filter(x => x.stage === step), Number(id)); return;
-    case "verify": showVerification(model.errors); return;
+    case "step": popup = null; step = Number(id); pickerQuery = ""; render("h1"); return;
+    case "continue": {
+      const issues = model.errors.filter(x => x.stage === step);
+      if (issues.length) { showVerification(issues); return; }
+      popup = null; step = Number(id); pickerQuery = ""; render("h1"); return;
+    }
+    case "review-issues": showVerification(model.errors); return;
+    case "trait-info": {
+      const trait = model.ancestry?.traits.find(x => x.id === id);
+      if (trait) open(trait.name, `<p>${e(trait.text)}</p>`);
+      return;
+    }
     case "ancestry-info": {
       const x = byId(catalog.ancestries, id);
       open(x.name, facts([["Origin", x.origin], ["HP", `+${x.hp}`], ["Base Speed", x.speed], ["Coins", `+${x.coins}`]])
@@ -354,45 +395,63 @@ app.addEventListener("click", event => {
       return;
     }
     case "ancestry": if (draft.ancestry !== id) { draft.ancestry = id; draft.traits = []; } break;
+    case "select-signature": draft.signature = id; break;
     case "class": if (draft.classId !== id) { draft.classId = id; draft.startingRanks = []; draft.signature = ""; } break;
-    case "detail":
-    case "buy": {
+    case "open-picker": {
+      const titles = { ability: "Learn abilities", discipline: "Learn disciplines", equipment: "Buy inventory items" };
+      pickerQuery = "";
+      popup = { title: titles[id], picker: id, restore };
+      render("#picker-search");
+      return;
+    }
+    case "close-popup":
+    case "picker-back": closePopup(); return;
+    case "detail": {
       const card = byId(catalog.cards, id);
-      const phase = step === 2 ? 0 : 1;
-      const eligible = (phase === 0 ? model.level0Choices : model.level1Choices).some(x => x.id === id);
-      const canBuy = mode === "builder" && (step === 2 || step === 4) && eligible && card.dp <= model.remaining[phase];
-      const cost = mode === "builder" && step === 3 && card.level === "1" ? "Free as your milestone choice" : `${card.dp} DP`;
+      const cost = mode === "builder" && step === STEP.class && card.level === "1"
+        ? "Free as your milestone choice" : card.level === "Universal" ? "Universal" : `${card.dp} DP`;
       open(card.name, facts([["Action", card.action], ["Attribute", card.attribute], ["Requirement", card.requirement], ["Cost", cost]])
-        + `<pre>${rulesMarkup(card.text)}</pre>`
-        + (mode === "builder" && (step === 2 || step === 4) ? `<p>${e(!eligible ? abilityReason(card, phase)
-          : canBuy ? `${model.remaining[phase] - card.dp} DP would remain in this pool.` : "Not enough DP in this pool.")}</p>` : ""),
-        canBuy ? { label: `Buy for ${card.dp} DP`, action: "confirm-buy", id } : undefined);
+        + `<pre>${rulesMarkup(card.text)}</pre>`);
       return;
     }
-    case "confirm-buy": popup = null; purchases.push({ kind: "card", id }); break;
-    case "rank": {
-      const discipline = app.querySelector("#rank-choice").value;
-      const rank = (model.ranks[discipline] ?? 0) + 1;
-      const cost = model.profession.prices[discipline][rank - 1];
-      const left = model.remaining[1] - cost;
-      const unlocked = catalog.cards.filter(card => card.level === "1" && card.requirement === `${discipline} ${rank}`);
-      open(`${discipline} ${rank}`, facts([["Class", model.profession.name], ["Cost", `${cost} DP`], ["Pool", "Level 1"]])
-        + `<p>${left >= 0 ? `${left} DP would remain.` : "Not enough DP in this pool."}</p>
-        <h3>Level-1 abilities this rank can unlock</h3><p>${unlocked.map(x => e(x.name)).join(" · ") || "Abilities at this rank may also have a later level gate."}</p>`,
-        left >= 0 ? { label: "Buy rank", action: "confirm-rank", id: discipline } : undefined);
-      return;
+    case "picker-buy-card": {
+      if (mode === "sheet") {
+        const card = byId(dev.eligible, id);
+        if (card && card.dp <= dev.remaining) play.levels.at(-1)?.purchases.push({ kind: "card", id });
+        break;
+      }
+      const choices = step === STEP.early ? model.level0Choices : model.level1Choices;
+      const card = byId(choices, id);
+      if (card && card.dp <= model.remaining[step === STEP.early ? 0 : 1]) purchases.push({ kind: "card", id });
+      break;
     }
-    case "confirm-rank": popup = null; purchases.push({ kind: "rank", id }); break;
+    case "picker-buy-rank": {
+      if (mode === "sheet") {
+        const cost = model.profession?.prices[id]?.[dev.ranks[id] ?? 0];
+        if (cost <= dev.remaining) play.levels.at(-1)?.purchases.push({ kind: "rank", id });
+        break;
+      }
+      const cost = model.profession?.prices[id]?.[model.ranks[id] ?? 0];
+      if (cost <= model.remaining[1]) purchases.push({ kind: "rank", id });
+      break;
+    }
     case "remove": purchases.splice(Number(id), 1); break;
-    case "gear": {
-      const item = byId(catalog.equipment, app.querySelector("#gear-choice").value);
-      const left = model.coins - model.cost - item.price;
+    case "market-read": {
+      const item = byId(catalog.equipment, id);
       open(item.name, facts([["Cost", `${item.price} coins`], ["Bulk", item.bulk], ["Hands", item.hands]])
-        + `<pre>${rulesMarkup(item.text)}</pre><p>${left >= 0 ? `${left} coins would remain.` : "Not enough starting coins."}</p>`,
-        left >= 0 ? { label: "Add gear", action: "confirm-gear", id: item.id } : undefined);
+        + `<pre>${rulesMarkup(item.text)}</pre>`);
       return;
     }
-    case "confirm-gear": popup = null; draft.gear.push(id); break;
+    case "market-buy": {
+      const item = byId(catalog.equipment, id);
+      const quantity = app.querySelector(`#quantity-${CSS.escape(id)}`).valueAsNumber;
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 200 - draft.gear.length || quantity * item.price > model.coins - model.cost) {
+        open("Review quantity", "<p>Choose a positive quantity you can afford with your remaining starting coins.</p>");
+        return;
+      }
+      draft.gear.push(...Array(quantity).fill(id));
+      break;
+    }
     case "remove-gear": {
       const slot = Number(id) + 1;
       draft.gear.splice(slot - 1, 1);
@@ -554,24 +613,6 @@ app.addEventListener("click", event => {
         { label: "Choose signature", action: "confirm-milestone", id }); return;
     }
     case "confirm-milestone": play.levels.at(-1).signature = id; popup = null; break;
-    case "advance-rank": {
-      const discipline = app.querySelector("#advance-rank").value;
-      const rank = (dev.ranks[discipline] ?? 0) + 1;
-      const cost = model.profession.prices[discipline][rank - 1];
-      open(`${discipline} ${rank}`, facts([["Cost", `${cost} DP`], ["Available", `${dev.remaining} DP`]])
-        + `<p>${catalog.cards.filter(x => x.requirement === `${discipline} ${rank}`)
-          .map(x => e(x.name) + " (level " + e(x.level) + ")").join(" · ")}</p>`,
-        cost <= dev.remaining ? { label: "Buy rank", action: "confirm-advance-rank", id: discipline } : undefined); return;
-    }
-    case "advance-card": {
-      const card = byId(catalog.cards, id);
-      open(card.name, facts([["Cost", `${card.dp} DP`], ["Requirement", card.requirement], ["Available", `${dev.remaining} DP`]])
-        + `<pre>${rulesMarkup(card.text)}</pre>`,
-        { label: "Buy ability", action: "confirm-advance-card", id }); return;
-    }
-    case "confirm-advance-rank":
-    case "confirm-advance-card":
-      play.levels.at(-1).purchases.push({ kind: action.endsWith("rank") ? "rank" : "card", id }); popup = null; break;
     case "remove-advancement": {
       const [level, index] = id.split(":").map(Number);
       play.levels[level - 2].purchases.splice(index, 1); break;

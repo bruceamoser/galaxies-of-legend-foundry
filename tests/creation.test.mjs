@@ -37,3 +37,13 @@ test("all classes have three level-one signature choices", () => {
     for (const d of catalog.disciplines) assert.equal(profession.prices[d].length, 3);
   }
 });
+
+test("ancestry and origin validation route to separate builder steps", async () => {
+  const { STEP } = await import("../src/rules/creation.mjs");
+  const draft = { ...iona(), language: "", culture: "" };
+  const result = evaluate(draft, catalog);
+  assert.ok(result.errors.some(x => x.stage === STEP.ancestry && x.message.includes("language")));
+  assert.ok(result.errors.some(x => x.stage === STEP.origins && x.message.includes("culture")));
+  assert.equal(result.earlyRanks.Engineering, 1);
+  assert.equal(result.earlyRanks.Science, undefined);
+});

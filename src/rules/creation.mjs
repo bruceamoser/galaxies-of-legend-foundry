@@ -1,3 +1,4 @@
+export const STEP = Object.freeze({ identity: 0, ancestry: 1, origins: 2, early: 3, class: 4, heroic: 5, equipment: 6, review: 7 });
 export const ATTRIBUTES = ["Brawn", "Fortitude", "Agility", "Guile", "Knowledge", "Reason"];
 export const createDraft = () => ({
   name: "", pronouns: "", attributes: { Brawn: 0, Fortitude: 0, Agility: 1, Guile: 0, Knowledge: 2, Reason: 0 },
@@ -20,13 +21,14 @@ export function evaluate(draft, catalog) {
   const check = (stage, condition, message) => { if (!condition) errors.push({ stage, message }); };
   const attributes = draft.attributes;
   const attributeTotal = ATTRIBUTES.reduce((sum, key) => sum + attributes[key], 0);
-  check(0, draft.name.trim(), "Name your explorer.");
-  check(0, attributeTotal === 3 && ATTRIBUTES.every(key =>
+  check(STEP.identity, draft.name.trim(), "Name your explorer.");
+  check(STEP.identity, attributeTotal === 3 && ATTRIBUTES.every(key =>
     Number.isInteger(attributes[key]) && Math.abs(attributes[key]) <= 2),
   "Assign six attributes from −2 to +2 for a total of +3.");
-  check(1, ancestry && traits.length === 2 && draft.traits.length === 2, "Choose an ancestry and exactly two traits.");
-  check(1, culture && background, "Choose both a culture and a background.");
-  check(1, draft.language.trim() && draft.language.trim().toLowerCase() !== "galactic standard",
+  check(STEP.ancestry, ancestry && traits.length === 2 && draft.traits.length === 2, "Choose an ancestry and exactly two traits.");
+  check(STEP.origins, culture, "Choose a culture and its grant.");
+  check(STEP.origins, background, "Choose a background and its grant.");
+  check(STEP.ancestry, draft.language.trim() && draft.language.trim().toLowerCase() !== "galactic standard",
     "Record one ordinary language in addition to Galactic Standard.");
   for (const origin of [culture, background].filter(Boolean)) {
     if (ranks[origin.rank]) duplicates++;
@@ -59,7 +61,7 @@ export function evaluate(draft, catalog) {
         : purchase.kind === "rank" && phase === 1 && rank <= 3
           ? profession?.prices[purchase.id]?.[rank - 1] : undefined;
       const valid = Number.isFinite(price) && price <= remaining[phase];
-      check(phase === 0 ? 2 : 4, valid, `Review purchase: ${card?.name ?? purchase.id}.`);
+      check(phase === 0 ? STEP.early : STEP.heroic, valid, `Review purchase: ${card?.name ?? purchase.id}.`);
       ledger.push({ phase, label: purchase.kind === "rank" ? `${purchase.id} ${rank}` : card?.name ?? purchase.id, price, valid });
       if (!valid) continue;
       remaining[phase] -= price;
@@ -69,37 +71,38 @@ export function evaluate(draft, catalog) {
   }
 
   applyPurchases(0, draft.level0);
+  const earlyRanks = { ...ranks };
   const level0Choices = catalog.cards.filter(card => cardEligible(card, 0));
-  check(3, profession, "Choose a class.");
+  check(STEP.class, profession, "Choose a class.");
   if (profession) {
-    check(3, profession.minimums.every(key => attributes[key] >= 0), "Meet your class attribute minimums.");
+    check(STEP.class, profession.minimums.every(key => attributes[key] >= 0), "Meet your class attribute minimums.");
     const startingRanks = [...new Set(draft.startingRanks)].filter(rank => profession.ranks.includes(rank));
-    check(3, startingRanks.length === 2 && draft.startingRanks.length === 2, "Choose two distinct class disciplines.");
+    check(STEP.class, startingRanks.length === 2 && draft.startingRanks.length === 2, "Choose two distinct class disciplines.");
     for (const rank of startingRanks) {
       if (ranks[rank]) { pools[1]++; remaining[1]++; }
       ranks[rank] = 1;
     }
     const signature = cards.get(draft.signature);
     const valid = signature?.level === "1" && profession.signatures.includes(signature.id);
-    check(3, valid, "Choose a level-1 signature.");
+    check(STEP.class, valid, "Choose a level-1 signature.");
     if (valid) owned.add(signature.id);
   }
   applyPurchases(1, draft.level1);
   const level1Choices = catalog.cards.filter(card => cardEligible(card, 1));
   const equipment = draft.gear.map(id => catalog.equipment.find(item => item.id === id));
-  check(5, equipment.every(Boolean), "Remove unavailable equipment.");
+  check(STEP.equipment, equipment.every(Boolean), "Remove unavailable equipment.");
   const coins = 40 + (ancestry?.coins ?? 0) + (culture?.coins ?? 0)
     + (background?.coins ?? 0) + (profession?.coins ?? 0);
   const cost = equipment.reduce((sum, item) => sum + (item?.price ?? 0), 0);
   const bulk = equipment.reduce((sum, item) => sum + (item?.bulk ?? 0), 0);
   const capacity = 10 + 3 * attributes.Brawn;
-  check(5, cost <= coins, "Your equipment exceeds your starting coins.");
+  check(STEP.equipment, cost <= coins, "Your equipment exceeds your starting coins.");
   for (const index of draft.hands.filter(Boolean)) {
     const item = equipment[Number(index) - 1];
     const held = draft.hands.filter(hand => hand === index).length;
-    check(5, item && item.hands === held, "Equip one-handed gear once, and two-handed gear in both hands.");
+    check(STEP.equipment, item && item.hands === held, "Equip one-handed gear once, and two-handed gear in both hands.");
   }
-  return { ancestry, profession, traits, ranks, owned: [...owned], pools, remaining, duplicates, ledger, errors,
+  return { ancestry, profession, traits, ranks, earlyRanks, owned: [...owned], pools, remaining, duplicates, ledger, errors,
     level0Choices, level1Choices, equipment, coins, cost, bulk, capacity,
     hp: 12 + (ancestry?.hp ?? 0) + (profession?.hp ?? 0) + attributes.Fortitude,
     speed: Math.max(0, (ancestry?.speed ?? 6) + attributes.Agility),

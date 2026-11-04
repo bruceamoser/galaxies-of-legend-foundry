@@ -5062,6 +5062,7 @@
       "id": "acid-etcher",
       "name": "Acid Etcher",
       "price": 130,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Physical · **Bulk:** 1 · **Hands:** 1 · **Cost:** 130 coins\n\nMelee weapon. Uses Basic Melee and deals Physical damage. Outside combat it etches identifying marks into bare metal.\n\n**ID:** acid-etcher\n\n[Equipment index](../equipment.md)"
@@ -5070,6 +5071,7 @@
       "id": "air-cylinder",
       "name": "Spare Air Cylinder",
       "price": 25,
+      "category": "Supply",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 25 coins\n\nA charged cylinder replaces the spent air supply of a compatible vac suit or rebreather. Fit it in breathable air or use the equipment’s isolated changeover port. It holds the same amount of air as the supply it replaces.\n\n**ID:** air-cylinder\n\n[Equipment index](../equipment.md)"
@@ -5078,6 +5080,7 @@
       "id": "arc-baton",
       "name": "Arc Baton",
       "price": 90,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Electrical · **Bulk:** 1 · **Hands:** 1 · **Cost:** 90 coins\n\nMelee weapon. Uses the Basic Melee action; a successful hit deals Electrical damage. On a Strong result, the target is Stunned 1.\n\n**ID:** arc-baton\n\n[Equipment index](../equipment.md)"
@@ -5086,6 +5089,7 @@
       "id": "basic-medical-dose",
       "name": "Basic Medical Dose",
       "price": 20,
+      "category": "Supply",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 20 coins\n\nInventory d4. Use [Administer a Medical Dose](../cards/administer-medical-dose.md): restore 6 HP before Life resistance, capped by missing HP; minimum 1 actual healing where HP is missing. No outcome roll or healer HP cost. Check inventory after use; the final use still works. This grants no wound treatment, Grit, resurrection or reversal of Last Words.\n\nThe giver spends a Maneuver and needs a free hand. Another recipient spends a Reaction unless at 0 HP. Prices retain HOL's 20/50/120 proposal for this sci-fi equivalent; local availability remains an SA decision.\n\n**ID:** item-basic-medical-dose\n\n[Equipment index](../equipment.md)"
@@ -5094,6 +5098,7 @@
       "id": "climbing-rig",
       "name": "Climbing Rig",
       "price": 55,
+      "category": "Tool",
       "bulk": 1,
       "hands": 2,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 2 · **Cost:** 55 coins\n\nIncludes a harness, a 20-metre line and anchors for sound surfaces. An attached line arrests a fall when it goes taut if the anchor holds. The explorer still has to reach solid footing or be hauled up.\n\n**ID:** climbing-rig\n\n[Equipment index](../equipment.md)"
@@ -5102,6 +5107,7 @@
       "id": "combat-shield",
       "name": "Combat Shield",
       "price": 90,
+      "category": "Protection",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Protection · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 90 coins\n\nWhile wielded, it grants Physical Resistance 1 against melee attacks you can see. Apply the normal resistance rules.\n\n**ID:** combat-shield\n\n[Equipment index](../equipment.md)"
@@ -5110,6 +5116,7 @@
       "id": "comms-array",
       "name": "Comms Array",
       "price": 60,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 60 coins\n\nWith line of sight, transmit voice or text between a ship and the surface at up to 10 km. Solid obstructions and active jamming can block the link.\n\n**ID:** comms-array\n\n[Equipment index](../equipment.md)"
@@ -5118,6 +5125,7 @@
       "id": "cryo-rod",
       "name": "Cryo Rod",
       "price": 110,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Cold · **Bulk:** 1 · **Hands:** 1 · **Cost:** 110 coins\n\nMelee weapon. Uses Basic Melee and deals Cold damage. On a Strong result the target also gains Freezing 1.\n\n**ID:** cryo-rod\n\n[Equipment index](../equipment.md)"
@@ -5126,6 +5134,7 @@
       "id": "data-slate",
       "name": "Data Slate",
       "price": 30,
+      "category": "Tool",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 30 coins\n\nHolds maps, notes, permits and recorded messages. Grants no bonus by itself.\n\n**ID:** data-slate\n\n[Equipment index](../equipment.md)"
@@ -5134,6 +5143,7 @@
       "id": "dose-case",
       "name": "Insulated Dose Case",
       "price": 25,
+      "category": "Tool",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 25 coins\n\nHolds up to three doses or sealed sample vials. A charged insert keeps them cold for six hours. Count the contents’ Bulk separately.\n\n**ID:** dose-case\n\n[Equipment index](../equipment.md)"
@@ -5142,6 +5152,7 @@
       "id": "drone-controller",
       "name": "Drone Controller",
       "price": 65,
+      "category": "Communications",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Communications · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 65 coins\n\nPair the controller to one compatible personal drone before the scene. It sends orders and displays reports during the paid command described in [Drones, sprites and companions](../rules/companions.md). It grants no drone, extra action or independent watch. A blocked signal interrupts the command.\n\n**ID:** drone-controller\n\n[Equipment index](../equipment.md)"
@@ -5150,6 +5161,7 @@
       "id": "field-sampler",
       "name": "Field Sampler",
       "price": 45,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 45 coins\n\nCollect liquid, soil or air in a sealed chamber without touching the sample. The chamber must be cleaned or replaced before reuse to avoid mixing samples.\n\n**ID:** field-sampler\n\n[Equipment index](../equipment.md)"
@@ -5158,6 +5170,7 @@
       "id": "flechette-shotgun",
       "name": "Flechette Shotgun",
       "price": 150,
+      "category": "Weapon",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Physical · **Bulk:** 2 · **Hands:** 2 · **Cost:** 150 coins\n\nRanged weapon. Range 6 squares. Uses Basic Ranged and deals Physical damage. On a Strong result at 3 squares or closer the target also gains Bleeding 1.\n\n**ID:** flechette-shotgun\n\n[Equipment index](../equipment.md)"
@@ -5166,6 +5179,7 @@
       "id": "forensic-kit",
       "name": "Forensic Kit",
       "price": 55,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 55 coins\n\nCollect residue, impressions or fragments from a reachable surface. Each sample gets its own numbered seal. The kit preserves the sample for analysis and leaves identification to the relevant ability or facility.\n\n**ID:** forensic-kit\n\n[Equipment index](../equipment.md)"
@@ -5174,6 +5188,7 @@
       "id": "greater-medical-dose",
       "name": "Greater Medical Dose",
       "price": 50,
+      "category": "Supply",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 50 coins\n\nInventory d4. Use [Administer a Medical Dose](../cards/administer-medical-dose.md): restore 10 HP before Life resistance, capped by missing HP; minimum 1 actual healing where HP is missing. No outcome roll or healer HP cost. Check inventory after use; the final use still works. This grants no wound treatment, Grit, resurrection or reversal of Last Words.\n\nThe giver spends a Maneuver and needs a free hand. Another recipient spends a Reaction unless at 0 HP. Prices retain HOL's 20/50/120 proposal for this sci-fi equivalent; local availability remains an SA decision.\n\n**ID:** item-greater-medical-dose\n\n[Equipment index](../equipment.md)"
@@ -5182,6 +5197,7 @@
       "id": "handheld-translator",
       "name": "Handheld Translator",
       "price": 60,
+      "category": "Communications",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Communications · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 60 coins\n\nComes with Galactic Standard and one ordinary language library chosen when acquired. Its microphone handles ordinary speech and its camera can read compatible writing or capture visible signing supported by the library. It presents written or spoken output, or a visible sign demonstration where supported. Knell Pattern pulses require a compatible contact-pad adapter. The SA establishes what libraries and adapters are available.\n\nIt translates routine wording while it can capture the message. It cannot decrypt a file, establish intent or supply a library it lacks. Use [Languages and translation](../rules/languages.md) when communication is uncertain.\n\n**ID:** handheld-translator\n\n[Equipment index](../equipment.md)"
@@ -5190,6 +5206,7 @@
       "id": "heavy-armor",
       "name": "Heavy Armour",
       "price": 320,
+      "category": "Protection",
       "bulk": 2,
       "hands": 0,
       "text": "**Category:** Protection · **Damage type:** None · **Bulk:** 2 · **Hands:** 0 · **Cost:** 320 coins\n\nGrants Physical Resistance 2 and Fire Resistance 2. Reduce Speed by 1 while worn. Donning or removing it takes ten minutes.\n\n**ID:** heavy-armor\n\n[Equipment index](../equipment.md)"
@@ -5198,6 +5215,7 @@
       "id": "helmet-comms",
       "name": "Helmet Comms",
       "price": 25,
+      "category": "Communications",
       "bulk": 0,
       "hands": 0,
       "text": "**Category:** Communications · **Damage type:** None · **Bulk:** 0 · **Hands:** 0 · **Cost:** 25 coins\n\nHands-free voice communication between paired units up to 100 metres away with a clear signal path. Dense structures or jamming can block the link. It pairs with a compatible comms array for longer links.\n\n**ID:** helmet-comms\n\n[Equipment index](../equipment.md)"
@@ -5206,6 +5224,7 @@
       "id": "intrusion-kit",
       "name": "Intrusion Kit",
       "price": 80,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 80 coins\n\nProvides probes, adapters and a meter for working on accessible locks and security panels. The kit provides access to the task where those tools are required.\n\n**ID:** intrusion-kit\n\n[Equipment index](../equipment.md)"
@@ -5214,6 +5233,7 @@
       "id": "laser-sidearm",
       "name": "Laser Sidearm",
       "price": 120,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Thermal · **Bulk:** 1 · **Hands:** 1 · **Cost:** 120 coins\n\nRanged weapon. Range 8 squares. Uses the Basic Ranged action; a successful hit deals Thermal damage.\n\n**ID:** laser-sidearm\n\n[Equipment index](../equipment.md)"
@@ -5222,6 +5242,7 @@
       "id": "light-armor",
       "name": "Light Armour",
       "price": 100,
+      "category": "Protection",
       "bulk": 1,
       "hands": 0,
       "text": "**Category:** Protection · **Damage type:** None · **Bulk:** 1 · **Hands:** 0 · **Cost:** 100 coins\n\nGrants DR 1. Does not stack with a vac suit. You may wear it under ordinary clothes.\n\n**ID:** light-armor\n\n[Equipment index](../equipment.md)"
@@ -5230,6 +5251,7 @@
       "id": "low-light-optics",
       "name": "Low-Light Optics",
       "price": 65,
+      "category": "Sensor",
       "bulk": 0,
       "hands": 0,
       "text": "**Category:** Sensor · **Damage type:** None · **Bulk:** 0 · **Hands:** 0 · **Cost:** 65 coins\n\nReduce sight-based Banes from dim light by 1 while wearing the optics. Use only the larger reduction if a trait also reduces dim-light Banes. They provide no image in total darkness or through smoke.\n\n**ID:** low-light-optics\n\n[Equipment index](../equipment.md)"
@@ -5238,6 +5260,7 @@
       "id": "mag-boots",
       "name": "Mag Boots",
       "price": 70,
+      "category": "Mobility",
       "bulk": 1,
       "hands": 0,
       "text": "**Category:** Mobility · **Damage type:** None · **Bulk:** 1 · **Hands:** 0 · **Cost:** 70 coins\n\nEngage or release the soles as a Maneuver. While engaged, you can stand and walk on a suitable ferrous surface in zero gravity. Only the attached surface provides support.\n\n**ID:** mag-boots\n\n[Equipment index](../equipment.md)"
@@ -5246,6 +5269,7 @@
       "id": "marksman-rifle",
       "name": "Marksman Rifle",
       "price": 210,
+      "category": "Weapon",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Physical · **Bulk:** 2 · **Hands:** 2 · **Cost:** 210 coins\n\nRanged weapon. Range 20 squares. Uses Basic Ranged and deals Physical damage.\n\n**ID:** marksman-rifle\n\n[Equipment index](../equipment.md)"
@@ -5254,6 +5278,7 @@
       "id": "medkit",
       "name": "Medkit",
       "price": 50,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 50 coins\n\nRequired for Medicine cards that call for a medkit. Has five uses; refill at a starport for 20 coins.\n\n**ID:** medkit\n\n[Equipment index](../equipment.md)"
@@ -5262,6 +5287,7 @@
       "id": "personal-shield",
       "name": "Personal Shield",
       "price": 400,
+      "category": "Protection",
       "bulk": 1,
       "hands": 0,
       "text": "**Category:** Protection · **Damage type:** None · **Bulk:** 1 · **Hands:** 0 · **Cost:** 400 coins\n\nActivate as a Maneuver. Grants Fire, Cold and Lightning Resistance 2 for one scene. Replace the spent cell before reactivating. A replacement costs 20 coins and takes ten minutes to fit.\n\n**ID:** personal-shield\n\n[Equipment index](../equipment.md)"
@@ -5270,6 +5296,7 @@
       "id": "plasma-cutter",
       "name": "Plasma Cutter",
       "price": 160,
+      "category": "Weapon",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Fire · **Bulk:** 2 · **Hands:** 2 · **Cost:** 160 coins\n\nMelee weapon. Uses Basic Melee and deals Fire damage. On a Strong result the target also gains Burning 1. With time, power and access it can cut ordinary sheet metal.\n\n**ID:** plasma-cutter\n\n[Equipment index](../equipment.md)"
@@ -5278,6 +5305,7 @@
       "id": "rad-flood-emitter",
       "name": "Rad-Flood Emitter",
       "price": 260,
+      "category": "Weapon",
       "bulk": 3,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Radiant · **Bulk:** 3 · **Hands:** 2 · **Cost:** 260 coins\n\nRanged weapon. Range 6 squares. Uses Basic Ranged and deals Radiant damage. Availability depends on local licensing and the market.\n\n**ID:** rad-flood-emitter\n\n[Equipment index](../equipment.md)"
@@ -5286,6 +5314,7 @@
       "id": "radiation-meter",
       "name": "Radiation Meter",
       "price": 45,
+      "category": "Sensor",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Sensor · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 45 coins\n\nA Main Action reads local ionizing radiation at the meter and indicates whether it is rising, falling or stable. It does not locate a shielded source or reduce exposure.\n\n**ID:** radiation-meter\n\n[Equipment index](../equipment.md)"
@@ -5294,6 +5323,7 @@
       "id": "rail-rifle",
       "name": "Rail Rifle",
       "price": 180,
+      "category": "Weapon",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Kinetic · **Bulk:** 2 · **Hands:** 2 · **Cost:** 180 coins\n\nRanged weapon. Range 12 squares. Uses the Basic Ranged action; a successful hit deals Kinetic damage. Attacks against targets behind cover ignore 1 point of cover DR.\n\n**ID:** rail-rifle\n\n[Equipment index](../equipment.md)"
@@ -5302,6 +5332,7 @@
       "id": "ration-pack",
       "name": "Ration Pack",
       "price": 5,
+      "category": "Supply",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 5 coins\n\nOne explorer’s food for one day. The sealed pack keeps without refrigeration. Drinking water is carried separately.\n\n**ID:** ration-pack\n\n[Equipment index](../equipment.md)"
@@ -5310,6 +5341,7 @@
       "id": "rebreather",
       "name": "Rebreather",
       "price": 40,
+      "category": "Tool",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 40 coins\n\nSupplies one hour of breathable air when fitted correctly. It provides no pressure protection, so vacuum use requires a pressure suit.\n\n**ID:** rebreather\n\n[Equipment index](../equipment.md)"
@@ -5318,6 +5350,7 @@
       "id": "rescue-winch",
       "name": "Rescue Winch",
       "price": 110,
+      "category": "Mobility",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Mobility · **Damage type:** None · **Bulk:** 2 · **Hands:** 2 · **Cost:** 110 coins\n\nAnchor the winch to a sound fixture. One operator can reel in a 20-metre line attached to one explorer or an equivalent load. The winch requires a clear path and cannot lift through an obstruction.\n\n**ID:** rescue-winch\n\n[Equipment index](../equipment.md)"
@@ -5326,6 +5359,7 @@
       "id": "sensor-pack",
       "name": "Sensor Pack",
       "price": 70,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 70 coins\n\nReads heat, movement and active transmissions when its signal can reach them. Covers its current room or one nearby outdoor area within 20 squares. Grants 1 Boon on Reason checks to scan within that coverage. See [Perception and contacts](../rules/perception.md).\n\n**ID:** sensor-pack\n\n[Equipment index](../equipment.md)"
@@ -5334,6 +5368,7 @@
       "id": "shield-cell",
       "name": "Shield Cell",
       "price": 20,
+      "category": "Supply",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 20 coins\n\nRestores one activation to a personal shield. Fitting a fresh cell takes ten minutes. A spent cell can be returned to a shop that services the shield.\n\n**ID:** shield-cell\n\n[Equipment index](../equipment.md)"
@@ -5342,6 +5377,7 @@
       "id": "slug-pistol",
       "name": "Slug Pistol",
       "price": 40,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Kinetic · **Bulk:** 1 · **Hands:** 1 · **Cost:** 40 coins\n\nRanged weapon. Range 6 squares. Uses the Basic Ranged action; a successful hit deals Kinetic damage.\n\n**ID:** slug-pistol\n\n[Equipment index](../equipment.md)"
@@ -5350,6 +5386,7 @@
       "id": "sonic-emitter",
       "name": "Sonic Emitter",
       "price": 190,
+      "category": "Weapon",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Weapon · **Damage type:** Physical · **Bulk:** 2 · **Hands:** 2 · **Cost:** 190 coins\n\nRanged weapon. Range 8 squares in atmosphere. Uses Basic Ranged and deals Physical damage. On a Strong result the target also gains Deafened 1. It requires a continuous atmosphere between the weapon and the target.\n\n**ID:** sonic-emitter\n\n[Equipment index](../equipment.md)"
@@ -5358,6 +5395,7 @@
       "id": "stun-baton",
       "name": "Stun Baton",
       "price": 70,
+      "category": "Weapon",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Lightning · **Bulk:** 1 · **Hands:** 1 · **Cost:** 70 coins\n\nMelee weapon. Uses Basic Melee and deals Lightning damage. On a Strong result the target also gains Dazed 1.\n\n**ID:** stun-baton\n\n[Equipment index](../equipment.md)"
@@ -5366,6 +5404,7 @@
       "id": "superior-medical-dose",
       "name": "Superior Medical Dose",
       "price": 120,
+      "category": "Supply",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Supply · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 120 coins\n\nInventory d4. Use [Administer a Medical Dose](../cards/administer-medical-dose.md): restore 16 HP before Life resistance, capped by missing HP; minimum 1 actual healing where HP is missing. No outcome roll or healer HP cost. Check inventory after use; the final use still works. This grants no wound treatment, Grit, resurrection or reversal of Last Words.\n\nThe giver spends a Maneuver and needs a free hand. Another recipient spends a Reaction unless at 0 HP. Prices retain HOL's 20/50/120 proposal for this sci-fi equivalent; local availability remains an SA decision.\n\n**ID:** item-superior-medical-dose\n\n[Equipment index](../equipment.md)"
@@ -5374,6 +5413,7 @@
       "id": "thermal-shelter",
       "name": "Thermal Shelter",
       "price": 65,
+      "category": "Tool",
       "bulk": 2,
       "hands": 2,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 2 · **Hands:** 2 · **Cost:** 65 coins\n\nDeploy in ten minutes on ground that can take its anchors. Shelters two explorers from ordinary wind and precipitation. A pressure leak, flood or direct heat source can still make the site unsafe.\n\n**ID:** thermal-shelter\n\n[Equipment index](../equipment.md)"
@@ -5382,6 +5422,7 @@
       "id": "toolkit",
       "name": "Toolkit",
       "price": 40,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 40 coins\n\nRequired for Engineering cards that call for a toolkit. Grants a Boon to Engineering checks made outside combat.\n\n**ID:** toolkit\n\n[Equipment index](../equipment.md)"
@@ -5390,6 +5431,7 @@
       "id": "utility-lamp",
       "name": "Utility Lamp",
       "price": 15,
+      "category": "Tool",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 0 · **Hands:** 1 · **Cost:** 15 coins\n\nIlluminate a 4-square cone from the lamp. Clip it to clothing or a fixture to leave both hands free. Smoke and opaque barriers still obscure what the light reaches.\n\n**ID:** utility-lamp\n\n[Equipment index](../equipment.md)"
@@ -5398,6 +5440,7 @@
       "id": "vac-suit",
       "name": "Vac Suit",
       "price": 80,
+      "category": "Protection",
       "bulk": 1,
       "hands": 0,
       "text": "**Category:** Protection · **Damage type:** None · **Bulk:** 1 · **Hands:** 0 · **Cost:** 80 coins\n\nA working seal prevents direct pressure exposure. Grants Radiant resistance 1 against environmental radiation. Includes a six-hour air supply, a tether and a helmet lamp. Track air under [Environmental hazards](../rules/environment.md).\n\n**ID:** vac-suit\n\n[Equipment index](../equipment.md)"
@@ -5406,6 +5449,7 @@
       "id": "vibro-knife",
       "name": "Vibro-Knife",
       "price": 45,
+      "category": "Weapon",
       "bulk": 0,
       "hands": 1,
       "text": "**Category:** Weapon · **Damage type:** Physical · **Bulk:** 0 · **Hands:** 1 · **Cost:** 45 coins\n\nMelee weapon. Uses Basic Melee and deals Physical damage. Its short blade fits in a pocket or boot sheath.\n\n**ID:** vibro-knife\n\n[Equipment index](../equipment.md)"
@@ -5414,6 +5458,7 @@
       "id": "water-purifier",
       "name": "Water Purifier",
       "price": 35,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** None · **Bulk:** 1 · **Hands:** 1 · **Cost:** 35 coins\n\nTreats one explorer’s daily drinking water in ten minutes. Removes sediment and ordinary biological contamination from fresh water. Dissolved toxins, salt and radioactive contamination require specialized treatment.\n\n**ID:** water-purifier\n\n[Equipment index](../equipment.md)"
@@ -5422,6 +5467,7 @@
       "id": "welding-torch",
       "name": "Welding Torch",
       "price": 60,
+      "category": "Tool",
       "bulk": 1,
       "hands": 1,
       "text": "**Category:** Tool · **Damage type:** Fire · **Bulk:** 1 · **Hands:** 1 · **Cost:** 60 coins\n\nJoins or cuts accessible metal when the operator has a suitable power supply and time to work. Follow the repair procedure for the object being repaired.\n\n**ID:** welding-torch\n\n[Equipment index](../equipment.md)"

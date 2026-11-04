@@ -75,7 +75,7 @@ catalog["cards"] = [
     for slug, name, t in rows("cards")
 ]
 catalog["equipment"] = [
-    dict(id=slug, name=name, price=int(field(t, "Cost").split()[0]),
+    dict(id=slug, name=name, price=int(field(t, "Cost").split()[0]), category=field(t, "Category"),
          bulk=int(field(t, "Bulk")), hands=int(field(t, "Hands")), text=rules(t))
     for slug, name, t in rows("equipment")
 ]

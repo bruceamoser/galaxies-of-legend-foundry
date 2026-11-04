@@ -51,19 +51,14 @@ export function sheet({ draft, play, model, dev, catalog, tab, e, button, facts 
     const current = play.levels.at(-1);
     const signatures = model.profession?.signatures.map(id => catalog.cards.find(x => x.id === id))
       .filter(x => Number(x.level) === dev.level) ?? [];
-    const nextRanks = catalog.disciplines.filter(d => (dev.ranks[d] ?? 0) < 3);
     content = facts([["Level", dev.level], ["Advancement DP", dev.remaining], ["DP spent", dev.total - dev.remaining]])
       + `<div class="play-actions">${b("Review level up", "level-up", "", dev.level >= 10 || dev.issues.length ? "disabled" : "")}
       ${b("Edit creation", "builder", "")}</div><p class="muted">Each new level grants 8 + level DP. Unspent advancement DP carries forward.</p>`
       + ([3, 7].includes(dev.level) ? summary("Milestone signature", `<div class="catalog">${signatures.map(x =>
         `<article><strong>${e(x.name)}${current.signature === x.id ? " · Chosen" : ""}</strong><div class="row-actions">${b("Read", "detail", x.id)}
         ${b("Choose", "milestone", x.id, current.signature ? "disabled" : "")}</div></article>`).join("")}</div>`) : "")
-      + (current ? `<div class="inline"><label>Next rank<select id="advance-rank">${nextRanks.map(d => {
-        const rank = (dev.ranks[d] ?? 0) + 1;
-        return `<option value="${e(d)}">${e(d)} ${rank} · ${model.profession.prices[d][rank - 1]} DP</option>`;
-      }).join("")}</select></label>${b("Review rank", "advance-rank", "", nextRanks.length ? "" : "disabled")}</div>
-      <h3>Eligible abilities</h3><div class="catalog">${dev.eligible.map(x => `<article><div><strong>${e(x.name)}</strong><small>${e(x.requirement)} · ${x.dp} DP</small></div>
-      <div class="row-actions">${b("Read", "detail", x.id)}${b("Review purchase", "advance-card", x.id, x.dp > dev.remaining ? "disabled" : "")}</div></article>`).join("")}</div>` : "")
+      + (current ? `<div class="play-actions">${b("Learn abilities", "open-picker", "ability", 'class="primary"')}
+        ${b("Learn disciplines", "open-picker", "discipline")}</div>` : "")
       + summary("Advancement ledger", `<ul class="ledger">${dev.history.map(x => `<li>Level ${x.at} · ${e(x.label)}<span>${x.valid ? x.price + " DP" : "Needs review"}</span>${b("Remove", "remove-advancement", `${x.at}:${x.position}`)}</li>`).join("")}</ul>
       ${dev.issues.map(x => `<p class="warning">${e(x.message)}</p>`).join("")}`);
   }
