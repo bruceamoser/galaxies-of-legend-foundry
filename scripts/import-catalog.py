@@ -36,7 +36,7 @@ catalog = {}
 catalog["ancestries"] = [
     dict(id=slug, name=name, hp=int(re.search(r"HP \+(\d+)", t)[1]),
          speed=int(re.search(r"base Speed (\d+)", t)[1]), coins=int(re.search(r"\+(\d+) coins", t)[1]),
-         origin=field(t, "Origin"), traits=[
+         origin=field(t, "Origin"), overview=t.split("## Appearance", 1)[0], traits=[
              dict(id=f"{slug}-{i}", name=title.rstrip("."), text=body.replace("*", ""),
                   level0DP=int(slug == "human" and title == "Learn on the Job."))
              for i, title, body in re.findall(r"(?m)^([1-5])\. \*\*([^*]+)\*\* (.+)$", t)
@@ -49,7 +49,7 @@ for kind in ("culture", "background"):
         rank, card = re.search(r"\*\*([A-Za-z]+) 1\*\* and \[[^]]+\]\(\.\./cards/([^)]+)\.md\)", t).groups()
         catalog[kind + "s"].append(dict(id=slug, name=name, rank=rank, card=card,
                                       coins=int(re.search(r"\+(\d+) coins", t)[1]),
-                                      intro=t.splitlines()[2].strip("*")))
+                                      intro=t.splitlines()[2].strip("*"), text=t.split("## Rules", 1)[0]))
 disciplines = [name for _, name, _ in rows("disciplines")]
 catalog["disciplines"] = sorted(disciplines)
 catalog["classes"] = []
@@ -71,7 +71,7 @@ catalog["cards"] = [
     dict(id=slug, name=name, level=field(t, "Tier / minimum level"),
          dp=int(field(t, "DP")) if field(t, "DP").isdigit() else 0,
          requirement=field(t, "Requirements to learn"), action=field(t, "Action"),
-         gear=field(t, "Equipment / acquisition"), text=rules(t))
+         gear=field(t, "Equipment / acquisition"), attribute=field(t, "Attribute"), text=rules(t))
     for slug, name, t in rows("cards")
 ]
 catalog["equipment"] = [
@@ -82,6 +82,24 @@ catalog["equipment"] = [
 t = read(design / "rules/languages.md")
 catalog["languages"] = [name for name in re.findall(r"(?m)^\| ([^|]+?) \| ", t)
                         if name not in {"Language", "Galactic Standard", "Named local language"}]
+wounds = read(design / "rules/wounds.md")
+catalog["wounds"] = {}
+for section in re.split(r"(?m)^## ", wounds)[1:]:
+    family = section.splitlines()[0]
+    if family not in {"Physical", "Elemental", "Mental", "Radiant", "Life/Necrotic"}:
+        continue
+    catalog["wounds"][family] = {
+        code: dict(injury=injury, effects=effects, remedy=remedy, rv=rv)
+        for code, injury, effects, remedy, rv in re.findall(
+            r"(?m)^\| ([1-6]{3}) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \|$", section)
+    }
+assert len(catalog["wounds"]) == 5 and all(len(rows) == 56 for rows in catalog["wounds"].values())
+conditions = read(design / "rules/conditions.md")
+catalog["conditions"] = [
+    dict(name=name.removesuffix(" X"), numbered=name.endswith(" X"), effect=effect, removal=removal)
+    for name, effect, removal in re.findall(r"(?m)^\| ([A-Z][A-Za-z]+(?: X)?) \| ([^|]+) \| ([^|]+) \|$", conditions)
+    if name != "Condition"
+]
 read(design / "player-book/manuscript/02-creation.md")
 (out / "web/data/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
 commit = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()

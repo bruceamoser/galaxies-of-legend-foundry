@@ -403,6 +403,8 @@
     "design/equipment/water-purifier.md": "34526450908f4f694ef2bab4ff4e33b1c300dee370b2e7ebb6558c0820f6fc01",
     "design/equipment/welding-torch.md": "70d308391fea37414713d050bed9c707c3531464eb923d34cdbfffecfd5c2503",
     "design/rules/languages.md": "e0cfc58033dcfd2c0b1d7b00194a91f786716a880b7b6c539f821c0f243a4b12",
+    "design/rules/wounds.md": "44918168e77f63691767390d50d9444d165f00c55ec1d7e6ec27c50ce11ff640",
+    "design/rules/conditions.md": "73eb185e5bcf209b13adc04113b1187410264627a6c2ee31b2f113499001fece",
     "design/player-book/manuscript/02-creation.md": "2aad19833828bd3dce9ffc0012e0fe4f529fe6e8a03ad85aba7d26e1269120e1"
   }
 }

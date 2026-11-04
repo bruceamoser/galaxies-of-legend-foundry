@@ -6,7 +6,9 @@ The GoL character workshop is a browser prototype for the future Foundry impleme
 
 Run `npm run dev` from this checkout, then open [the local workshop](http://127.0.0.1:8765/web/). The app needs Node for checks and Python for the static server and catalog importer. It has no application dependencies.
 
-The workshop covers level-1 creation, ability previews, shopping, local autosave and JSON export. The JSON is a workshop record. Native Foundry Actors, advancement and runtime integration are future implementation work.
+The workshop has two modes. The builder verifies each step and previews ancestry and origin grants, class costs, signatures, abilities, ranks and equipment. The character sheet supports rolls, advancement through level 10, inventory and hand assignment, conditions, HP, Grit, death and wound records, treatment, and self-administered medical doses. Named saves, local autosave, and JSON import/export preserve the play record.
+
+The workshop is a single-character tool. Resolve targeting, wound applicability, movement, and condition timing at the table. Foundry Actors, linked combat, chat cards and the separate HoL utility apps remain future work.
 
 ## Structure
 

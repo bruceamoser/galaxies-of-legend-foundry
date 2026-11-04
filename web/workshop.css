@@ -14,3 +14,18 @@ dialog{background:var(--panel);color:var(--text);border:1px solid var(--edge);bo
 @media(max-width:1050px){.shell{grid-template-columns:142px minmax(0,1fr) 175px;gap:10px}.stage,.summary{padding:14px}}
 @media(max-width:790px){.shell{grid-template-columns:minmax(0,1fr)}nav,.summary{position:static}nav{display:flex;overflow:auto;gap:5px}nav .eyebrow{display:none}nav button{width:auto;white-space:nowrap}.summary{display:none}.lineage img{height:65px}}
 @media(max-width:420px){.top a{letter-spacing:.06em;font-size:.84rem}.badge{font-size:.58rem}.class-grid{grid-template-columns:1fr}.lineages{grid-template-columns:repeat(3,minmax(0,1fr))}.row-actions{gap:3px}}
+.decision-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}
+.decision-facts div,.decision-summary{border:1px solid var(--edge);border-radius:7px;background:#0b1723;padding:8px}
+.decision-facts dt{font-size:.73rem;color:var(--accent);margin-bottom:3px}.decision-facts dd{margin:0;font-weight:700}
+.decision-summary,.dialog-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}.dialog-actions{margin-top:18px}
+.class-grid article{display:grid;grid-template-rows:1fr auto;gap:4px}.class-grid article>button:last-child{font-size:.8rem}
+.verify-list{display:grid;gap:10px;padding-left:20px}.verify-list button{margin-left:6px}.unavailable{color:var(--amber)}
+.workshop-toolbar,.sheet-nav,.sheet-attributes,.play-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+.play-sheet{border:1px solid var(--edge);background:var(--panel);border-radius:12px;padding:clamp(12px,3vw,26px)}
+.sheet-header{display:grid;grid-template-columns:112px minmax(0,1fr) minmax(240px,1fr);align-items:center;gap:16px}
+.sheet-header img{width:100%;height:135px;object-fit:contain}.sheet-header .decision-facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sheet-nav{border-bottom:1px solid var(--edge);padding-bottom:10px}.sheet-nav [aria-current]{border-color:var(--accent);color:var(--accent)}
+.sheet-group{border:1px solid var(--edge);border-radius:8px;margin:8px 0;padding:10px}.sheet-group summary{color:var(--accent);cursor:pointer;font-weight:700}
+.sheet-panel textarea{width:100%;min-height:110px;color:inherit;background:#0b1723;border:1px solid var(--edge);padding:10px;border-radius:7px}
+.sheet-panel .catalog{max-height:340px}.workshop-toolbar input[hidden]{display:none}
+@media(max-width:700px){.sheet-header{grid-template-columns:75px minmax(0,1fr)}.sheet-header .decision-facts{grid-column:1/-1}.sheet-header img{height:100px}}
