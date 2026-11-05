@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "python3 -m http.server 8765 --bind 127.0.0.1",
+    "dev": "python3 scripts/serve-workshop.py",
     "check": "node --check web/workshop.mjs && node --test"
   }
 }

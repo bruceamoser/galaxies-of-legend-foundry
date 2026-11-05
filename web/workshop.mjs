@@ -5,7 +5,7 @@ import { portable, readPortable } from "../src/rules/portable.mjs";
 import { sheet } from "./sheet.mjs";
 import { equipmentEligibility, gearNeeds, supportsGearNeed } from "../src/rules/equipment.mjs";
 import { abilityBadges, actionCounts, disciplineIcon } from "./ability-badges.mjs";
-import { builderPicker } from "./builder-picker.mjs";
+import { builderPicker } from "./builder-picker.mjs?v=ability-reference-2";
 
 const libraryKey = "gol-character-library-v2";
 const key = "gol-character-workshop-v1";
@@ -117,8 +117,13 @@ function training(phase) {
   <p class="callout"><strong>${model.remaining[phase]} / ${model.pools[phase]} DP</strong> remaining</p>
   <div class="row-actions">${button("Learn abilities", "open-picker", "ability", 'class="primary"')}
   ${phase ? button("Learn disciplines", "open-picker", "discipline") : ""}</div>
-  <h3>Purchase ledger</h3>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) =>
-    `<li>${x.kind === "card" && x.valid ? button(x.label, "detail", x.id, 'class="reference-link"') : e(x.label)} <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
+  <h3>Purchase ledger</h3>${actionCounts(purchases.filter(row => row.valid && row.kind === "card")
+    .map(row => byId(catalog.cards, row.id)).filter(Boolean), e)}
+  <p class="ability-key">A Main Action · M Maneuver · R Reaction · P Passive</p>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) =>
+    `<li class="purchase-row"><div class="purchase-choice">${x.kind === "card" && byId(catalog.cards, x.id)
+      ? abilityBadges(byId(catalog.cards, x.id), e) + button(x.label, "detail", x.id, 'class="ability-reference"')
+      : (x.kind === "rank" && catalog.disciplines.includes(x.id) ? disciplineIcon(x.id, e) : "") + e(x.label)}</div>
+      <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
     : "<p class='muted'>No purchases yet.</p>"}`;
 }
 function chooseClass() {
@@ -661,7 +666,7 @@ app.addEventListener("click", event => {
 });
 
 try {
-  const response = await fetch("./data/catalog.json");
+  const response = await fetch("./data/catalog.json?v=ability-reference-2", { cache: "no-store" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   catalog = await response.json();
   render();

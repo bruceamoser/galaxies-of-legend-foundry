@@ -12,18 +12,23 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
   const needs = gearNeeds(catalog, known);
   const balance = market ? `${model.coins - model.cost} coins` : `${dp} DP`;
   const rankTags = Object.entries(knownRanks)
-    .map(([name, rank]) => `<span class="grant-chip">${e(name)} ${rank}</span>`).join("");
+    .map(([name, rank]) => `<span class="grant-chip">${disciplineIcon(name, e)}${e(name)} ${rank}</span>`).join("");
   const bought = (development ? development.history.filter(row => row.at === development.level && row.valid) : model.ledger.filter(row => row.phase === phase && row.valid))
-    .map(row => row.kind === "card" ? button(row.label, "detail", row.id, 'class="reference-link"')
-      : `<span class="grant-chip">${e(row.label)}</span>`).join("");
+    .map(row => {
+      const card = catalog.cards.find(card => card.id === row.id);
+      return row.kind === "card" && card
+        ? `<span class="purchased-card">${abilityBadges(card, e)}${button(row.label, "detail", row.id, 'class="ability-reference"')}</span>`
+        : `<span class="grant-chip">${catalog.disciplines.includes(row.id) ? disciplineIcon(row.id, e) : ""}${e(row.label)}</span>`;
+    }).join("");
   const context = `<div class="picker-context"><strong>${balance} remaining</strong>
     ${market ? `<span>Bulk ${model.bulk} / ${model.capacity}</span>` : `
       <div><small>Known disciplines</small> ${rankTags || "None yet"}</div>
       <div><small>Purchased this step</small> ${bought || "None yet"}</div>`}</div>
-    <label>Search ${market ? "equipment" : ranks ? "disciplines" : "abilities"}
+    <div class="picker-filters"><label>Search ${market ? "equipment" : ranks ? "disciplines" : "abilities"}
     <input id="picker-search" type="search" value="${e(query)}"></label>
     ${kind === "ability" ? `<label>Discipline<select id="discipline-filter" aria-label="Discipline">${[["all", "All disciplines"], ["universal", "Universal · no discipline required"], ...catalog.disciplines.map(name => [name, name])].map(([id, name]) =>
-      `<option value="${e(id)}" ${id === filter ? "selected" : ""}>${e(name)}</option>`).join("")}</select></label>` : ""}`;
+      `<option value="${e(id)}" ${id === filter ? "selected" : ""}>${e(name)}</option>`).join("")}</select></label>` : ""}</div>
+    <p class="ability-key">A Main Action · M Maneuver · R Reaction · P Passive</p>`;
   if (market) {
     const rows = catalog.equipment.filter(x => match(x.name + " " + x.category)).map(item => {
       const trained = equipmentEligibility(item, known);
@@ -45,8 +50,7 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
     const cost = model.profession?.prices[name]?.[rank - 1];
     return { id: name, discipline: name, name: rank > 3 ? name : `${name} ${rank}`, cost, ready: cost <= dp,
       reason: rank > 3 ? "Rank 3 already known." : cost === undefined ? "Choose a class first." : "Insufficient DP.",
-      summary: catalog.cards.filter(card => card.requirement === `${name} ${rank}`)
-        .map(card => `${card.name} (level ${card.level})`).join(" · ") };
+      unlocks: catalog.cards.filter(card => card.requirement === `${name} ${rank}`) };
   }) : catalog.cards.filter(card => match(`${card.name} ${card.requirement} ${card.action}`) && (
     filter === "all" || (filter === "universal" ? card.requirement === "None" : card.requirement.startsWith(filter + " "))
   )).map(card => {
@@ -58,14 +62,24 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
             : `Requires ${card.requirement} before purchase.`,
       summary: `${card.action} · ${card.requirement}` };
   });
-  return context + `<div class="picker-results">${["free", true, false].map(ready => {
+  const groups = [true, "free", false].map(ready => {
     const group = choices.filter(x => ready === "free" ? x.free : !x.free && x.ready === ready);
     if (!group.length) return "";
-    return `<h3>${ready === "free" ? "Free universal actions · already known" : ready ? "Available to learn" : "Not available yet"} <small>${group.length}</small></h3>
-    <div class="picker-cards">${group.map(x => `<article class="choice-card"><h3>${ranks ? disciplineIcon(x.discipline, e) : abilityBadges(x, e)}${e(x.name)}</h3>
-      <p>${e(x.summary || "No additional ability listed for this rank.")}</p>
+    const title = ready === "free" ? "Free universal actions · already known" : ready ? "Available to learn" : "Not available yet";
+    const cards = `<div class="picker-cards">${group.map(x => `<article class="choice-card">
+      <header class="picker-card-heading">
+      <h3>${ranks ? disciplineIcon(x.discipline, e) + e(x.name) : button(x.name, "detail", x.id, 'class="ability-reference"')}</h3>
+      ${ranks ? "" : abilityBadges(x, e)}</header>
+      ${ranks ? `<p class="ability-key">Abilities unlocked by this rank</p><ul class="unlock-list">${x.unlocks.map(card =>
+        `<li>${abilityBadges(card, e)}${button(card.name, "detail", card.id, 'class="ability-reference"')}
+        <small>Level ${e(card.level)}</small></li>`).join("") || "<li>No additional ability listed for this rank.</li>"}</ul>`
+        : `<p>${e(x.summary)}</p>`}
       <p>${x.cost === undefined ? "" : `<strong>${x.cost} DP</strong> · `}${x.free ? "No DP cost" : ready ? "Eligible" : e(x.reason)}</p>
-      <div class="row-actions">${ranks ? "" : button("Read rules", "detail", x.id)}
-      ${ready === true ? button("Learn", ranks ? "picker-buy-rank" : "picker-buy-card", x.id) : ""}</div></article>`).join("")}</div>`;
-  }).join("") || "<p>No matching choices.</p>"}</div>`;
+      ${ready === true ? button("Learn", ranks ? "picker-buy-rank" : "picker-buy-card", x.id) : ""}</article>`).join("")}</div>`;
+    if (ready === "free" && filter !== "universal" && !query.trim()) {
+      return `<details class="free-actions"><summary>${title} · ${group.length}</summary>${cards}</details>`;
+    }
+    return `<h3>${title} <small>${group.length}</small></h3>${cards}`;
+  }).join("");
+  return context + `<div class="picker-results">${groups || "<p>No matching choices.</p>"}</div>`;
 }

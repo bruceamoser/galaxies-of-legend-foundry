@@ -19,3 +19,7 @@ Native Foundry acceptance will require its own disposable-world checks. The curr
 The eight-step flow follows the HoL workshop from Identity through Review. Use separate ancestry and origin steps, grant-bearing origin labels, eligibility-first class cards, and searchable learning and market pickers. A valid Continue advances directly. An invalid Continue shows the issues and offers a way back to the relevant step. Reading a rule from a picker returns to the same search. Apply the same learning picker to advancement.
 
 Retest an existing seven-step autosave. It should preserve character data and map its old step to the corresponding step in the new flow. Verify the size of selected, unselected and disabled trait controls on desktop and mobile.
+
+## Ability reference visibility
+
+Open Heroic learning from a saved draft with 1 DP remaining. Check that affordable 1-DP choices are visible before the unavailable catalog. The ability picker must show the discipline filter, action letters, discipline badges, and linked titles. The discipline picker must show a glyph for each discipline and rule links for the abilities its rank unlocks. Purchase-ledger titles and purchased chips must open the same rule preview. Closing a preview returns to the active search and discipline filter. Refresh and verify the draft persists.
