@@ -1,11 +1,11 @@
-import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.mjs?v=ledger-rows-3";
+import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.mjs?v=ability-categories-4";
 
 import { advancement, createPlay, deathRoll, restoreHP, roll, takeDamage, MEDICAL_DOSES, removeItem, useMedicalDose } from "../src/rules/play.mjs";
 import { portable, readPortable } from "../src/rules/portable.mjs";
-import { sheet } from "./sheet.mjs";
+import { sheet } from "./sheet.mjs?v=ability-categories-4";
 import { equipmentEligibility, gearNeeds, supportsGearNeed } from "../src/rules/equipment.mjs";
 import { abilityBadges, actionCounts, disciplineIcon } from "./ability-badges.mjs";
-import { builderPicker } from "./builder-picker.mjs?v=ledger-rows-3";
+import { builderPicker } from "./builder-picker.mjs?v=ability-categories-4";
 
 const libraryKey = "gol-character-library-v2";
 const key = "gol-character-workshop-v1";
@@ -177,7 +177,7 @@ function review() {
   <h3>Learned abilities</h3>${actionCounts(catalog.cards.filter(x => model.owned.includes(x.id)), e)}
   <div class="catalog">${model.owned.map(id => `<article>${button(cardName(id), "detail", id, 'class="reference-link"')}
     ${abilityBadges(byId(catalog.cards, id), e)}</article>`).join("")}</div>
-  <details class="sheet-group"><summary>Free universal actions</summary><div class="catalog">${catalog.cards.filter(card => card.level === "Universal")
+  <details class="sheet-group"><summary>Basic Actions</summary><div class="catalog">${catalog.cards.filter(card => card.level === "Universal")
     .map(card => `<article>${button(card.name, "detail", card.id, 'class="reference-link"')}${abilityBadges(card, e)}</article>`).join("")}</div></details>
   <details class="sheet-group"><summary>Creation ledger</summary>
   ${facts([["Early DP spent", model.pools[0] - model.remaining[0]], ["Early DP expiring", model.remaining[0]],
@@ -454,7 +454,7 @@ app.addEventListener("click", event => {
     case "detail": {
       const card = byId(catalog.cards, id);
       const cost = mode === "builder" && step === STEP.class && card.level === "1"
-        ? "Free as your milestone choice" : card.level === "Universal" ? "Universal" : `${card.dp} DP`;
+        ? "Free as your milestone choice" : card.level === "Universal" ? "Basic action · already known" : `${card.dp} DP`;
       open(card.name, facts([["Action", card.action], ["Attribute", card.attribute], ["Requirement", card.requirement], ["Cost", cost]])
         + `<pre>${rulesMarkup(card.text)}</pre>`);
       return;
@@ -687,7 +687,7 @@ app.addEventListener("click", event => {
 });
 
 try {
-  const response = await fetch("./data/catalog.json?v=ledger-rows-3", { cache: "no-store" });
+  const response = await fetch("./data/catalog.json?v=ability-categories-4", { cache: "no-store" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   catalog = await response.json();
   render();

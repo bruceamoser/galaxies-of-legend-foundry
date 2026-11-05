@@ -34,7 +34,7 @@ export function sheet({ draft, play, model, dev, catalog, tab, e, button, facts 
       `<span class="grant-chip">${disciplineIcon(name, e)}${e(name)} ${rank}</span>`).join("")}</div>`
       + "<h3>Learned abilities</h3>" + actionCounts(owned.filter(x => x.level !== "Universal"), e)
       + rows(owned.filter(x => x.level !== "Universal"), true)
-      + summary("Free universal actions", rows(owned.filter(x => x.level === "Universal"), true));
+      + summary("Basic Actions", rows(owned.filter(x => x.level === "Universal"), true));
   } else if (tab === "Inventory") {
     content = facts([["Carried Bulk", `${load} / ${model.capacity}`], ["Coins", play.coins]])
       + `<label>Coins<input type="number" min="0" value="${play.coins}" data-play-field="coins"></label>

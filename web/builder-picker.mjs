@@ -26,7 +26,7 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
       <div><small>Purchased this step</small> ${bought || "None yet"}</div>`}</div>
     <div class="picker-filters"><label>Search ${market ? "equipment" : ranks ? "disciplines" : "abilities"}
     <input id="picker-search" type="search" value="${e(query)}"></label>
-    ${kind === "ability" ? `<label>Discipline<select id="discipline-filter" aria-label="Discipline">${[["all", "All disciplines"], ["universal", "Universal · no discipline required"], ...catalog.disciplines.map(name => [name, name])].map(([id, name]) =>
+    ${kind === "ability" ? `<label>Discipline<select id="discipline-filter" aria-label="Discipline">${[["all", "All disciplines"], ["universal", "Universal Abilities"], ["basic", "Basic Actions"], ...catalog.disciplines.map(name => [name, name])].map(([id, name]) =>
       `<option value="${e(id)}" ${id === filter ? "selected" : ""}>${e(name)}</option>`).join("")}</select></label>` : ""}</div>
     <p class="ability-key">A Main Action · M Maneuver · R Reaction · P Passive</p>`;
   if (market) {
@@ -45,15 +45,19 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
     return context + `<div class="picker-results"><table class="market-table"><thead><tr><th>Item</th><th>Coins</th><th>Bulk</th><th>Hands</th><th>Qty</th><th>Action</th></tr></thead>
     <tbody>${rows.join("") || '<tr><td colspan="6">No matching items.</td></tr>'}</tbody></table></div>`;
   }
+  const matchesFilter = card => {
+    if (filter === "all") return true;
+    if (filter === "basic") return card.level === "Universal";
+    if (filter === "universal") return card.level !== "Universal" && card.requirement === "None";
+    return card.requirement.startsWith(filter + " ");
+  };
   const choices = ranks ? catalog.disciplines.filter(name => match(name)).map(name => {
     const rank = (knownRanks[name] ?? 0) + 1;
     const cost = model.profession?.prices[name]?.[rank - 1];
     return { id: name, discipline: name, name: rank > 3 ? name : `${name} ${rank}`, cost, ready: cost <= dp,
       reason: rank > 3 ? "Rank 3 already known." : cost === undefined ? "Choose a class first." : "Insufficient DP.",
       unlocks: catalog.cards.filter(card => card.requirement === `${name} ${rank}`) };
-  }) : catalog.cards.filter(card => match(`${card.name} ${card.requirement} ${card.action}`) && (
-    filter === "all" || (filter === "universal" ? card.requirement === "None" : card.requirement.startsWith(filter + " "))
-  )).map(card => {
+  }) : catalog.cards.filter(card => match(`${card.name} ${card.requirement} ${card.action}`) && matchesFilter(card)).map(card => {
     const eligible = available.has(card.id);
     return { ...card, cost: card.level === "Universal" ? undefined : card.dp, free: card.level === "Universal", ready: eligible && card.dp <= dp,
       reason: eligible ? "Insufficient DP." : !development ? abilityReason(card, phase)
@@ -65,7 +69,7 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
   const groups = [true, "free", false].map(ready => {
     const group = choices.filter(x => ready === "free" ? x.free : !x.free && x.ready === ready);
     if (!group.length) return "";
-    const title = ready === "free" ? "Free universal actions · already known" : ready ? "Available to learn" : "Not available yet";
+    const title = ready === "free" ? "Basic Actions · already known" : ready ? "Available to learn" : "Not available yet";
     const cards = `<div class="picker-cards">${group.map(x => `<article class="choice-card">
       <header class="picker-card-heading">
       <h3>${ranks ? disciplineIcon(x.discipline, e) + e(x.name) : button(x.name, "detail", x.id, 'class="ability-reference"')}</h3>
@@ -73,10 +77,10 @@ export function builderPicker({ kind, phase, query, catalog, model, e, button, a
       ${ranks ? `<p class="ability-key">Abilities unlocked by this rank</p><ul class="unlock-list">${x.unlocks.map(card =>
         `<li>${abilityBadges(card, e)}${button(card.name, "detail", card.id, 'class="ability-reference"')}
         <small>Level ${e(card.level)}</small></li>`).join("") || "<li>No additional ability listed for this rank.</li>"}</ul>`
-        : `<p>${e(x.summary)}</p>`}
+        : `<p>${e(x.summary)}${x.requirement === "None" && !x.free ? " · Universal Ability" : ""}</p>`}
       <p>${x.cost === undefined ? "" : `<strong>${x.cost} DP</strong> · `}${x.free ? "No DP cost" : ready ? "Eligible" : e(x.reason)}</p>
       ${ready === true ? button("Learn", ranks ? "picker-buy-rank" : "picker-buy-card", x.id) : ""}</article>`).join("")}</div>`;
-    if (ready === "free" && filter !== "universal" && !query.trim()) {
+    if (ready === "free" && filter !== "basic" && !query.trim()) {
       return `<details class="free-actions"><summary>${title} · ${group.length}</summary>${cards}</details>`;
     }
     return `<h3>${title} <small>${group.length}</small></h3>${cards}`;
