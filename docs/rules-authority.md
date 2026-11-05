@@ -6,4 +6,4 @@ Resolve origin grants before level 0 and class grants afterward. A duplicate ori
 
 The sheet displays Speed before encumbrance because the current equipment sources do not specify a numeric Speed deduction. Over-capacity loads are flagged for the SA. A gear requirement on an ability is shown in its rules and does not mean the character receives the item.
 
-The prototype uses a local, uncommitted rules snapshot with exact input hashes. Before a public implementation release, pin a reviewed rulebook commit and regenerate the catalog. The browser export is versioned separately from any future Foundry document schema.
+The catalog uses the GoL review branch commit and exact input hashes in `content/source-lock.json`. Refresh both when the workshop adopts a new rules snapshot. The browser export is versioned separately from any future Foundry document schema.

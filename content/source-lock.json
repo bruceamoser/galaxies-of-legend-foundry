@@ -1,6 +1,6 @@
 {
-  "baseCommit": "ca36687141a4519e9306ac9cbbc790e9a0b82436",
-  "workingTreeSnapshot": true,
+  "baseCommit": "c23d31485d2f4b7429702e79b4a630b673f6d8b6",
+  "workingTreeSnapshot": false,
   "inputs": {
     "design/ancestries/ambril.md": "cfe483807476ddb937809ec302caab4cac1dbd5907900a6de413b58bf54cc098",
     "design/ancestries/human.md": "c4a5eff34859a385c151413c2eee956c51e39506c2cef90758a963c052159ad4",

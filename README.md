@@ -14,7 +14,7 @@ The workshop is a single-character tool. Resolve targeting, wound applicability,
 
 - `web/` contains the browser workshop, ancestry illustrations and generated catalog.
 - `src/rules/` contains pure creation rules, independent of browser and Foundry documents.
-- `content/source-lock.json` records the GoL base commit and the hashes of the exact imported Markdown. The initial snapshot includes unpublished working-tree changes.
+- `content/source-lock.json` records the GoL base commit and the hashes of the exact imported Markdown. The current catalog is pinned to a book-repo commit.
 - `scripts/import-catalog.py` refreshes the catalog from a GoL rulebook checkout.
 - `docs/` records rules authority and implementation boundaries.
 
