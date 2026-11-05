@@ -1,5 +1,6 @@
 import { ATTRIBUTES } from "../src/rules/creation.mjs";
 
+import { abilityBadges, actionCounts, disciplineIcon } from "./ability-badges.mjs";
 import { MEDICAL_DOSES } from "../src/rules/play.mjs";
 
 const tabs = ["Main", "Abilities", "Inventory", "Character", "Development"];
@@ -11,10 +12,10 @@ export function sheet({ draft, play, model, dev, catalog, tab, e, button, facts 
   const itemRows = play.items.map(id => catalog.equipment.find(x => x.id === id));
   const load = itemRows.reduce((n, item) => n + (item?.bulk ?? 0), 0);
   const rows = (items, favorite = false) => `<div class="catalog">${items.map(x =>
-    `<article><div><strong>${e(x.name)}</strong><small>${e(x.action)} · ${e(x.attribute)}</small></div>
+    `<article><div>${b(x.name, "detail", x.id, 'class="reference-link"')}${abilityBadges(x, e)}<small>${e(x.action)} · ${e(x.attribute)}</small></div>
     <div class="row-actions">${favorite ? b(play.favorites.includes(x.id) ? "★" : "☆", "favorite", x.id,
       `aria-label="${play.favorites.includes(x.id) ? "Unfavorite" : "Favorite"} ${e(x.name)}"`) : ""}
-    ${b("Read", "detail", x.id)}${ATTRIBUTES.includes(x.attribute) ? b("Roll", "sheet-roll", x.id) : ""}</div></article>`).join("") || "<p class='muted'>No entries.</p>"}</div>`;
+    ${ATTRIBUTES.includes(x.attribute) ? b("Roll", "sheet-roll", x.id) : ""}</div></article>`).join("") || "<p class='muted'>No entries.</p>"}</div>`;
   const groups = ["Main Action", "Maneuver", "Reaction", "Passive"];
   let content;
   if (tab === "Main") {
@@ -29,7 +30,11 @@ export function sheet({ draft, play, model, dev, catalog, tab, e, button, facts 
       ${b("Stabilize", "stabilize", "", play.state !== "dying" ? "disabled" : "")}
       ${play.state === "last-words" ? b("End Last Words turn", "last-turn", "") : ""}</div>`);
   } else if (tab === "Abilities") {
-    content = facts(Object.entries(dev.ranks)) + rows(owned, true);
+    content = `<div class="picker-context">${Object.entries(dev.ranks).map(([name, rank]) =>
+      `<span class="grant-chip">${disciplineIcon(name, e)}${e(name)} ${rank}</span>`).join("")}</div>`
+      + "<h3>Learned abilities</h3>" + actionCounts(owned.filter(x => x.level !== "Universal"), e)
+      + rows(owned.filter(x => x.level !== "Universal"), true)
+      + summary("Free universal actions", rows(owned.filter(x => x.level === "Universal"), true));
   } else if (tab === "Inventory") {
     content = facts([["Carried Bulk", `${load} / ${model.capacity}`], ["Coins", play.coins]])
       + `<label>Coins<input type="number" min="0" value="${play.coins}" data-play-field="coins"></label>
@@ -55,11 +60,11 @@ export function sheet({ draft, play, model, dev, catalog, tab, e, button, facts 
       + `<div class="play-actions">${b("Review level up", "level-up", "", dev.level >= 10 || dev.issues.length ? "disabled" : "")}
       ${b("Edit creation", "builder", "")}</div><p class="muted">Each new level grants 8 + level DP. Unspent advancement DP carries forward.</p>`
       + ([3, 7].includes(dev.level) ? summary("Milestone signature", `<div class="catalog">${signatures.map(x =>
-        `<article><strong>${e(x.name)}${current.signature === x.id ? " · Chosen" : ""}</strong><div class="row-actions">${b("Read", "detail", x.id)}
+        `<article>${b(x.name + (current.signature === x.id ? " · Chosen" : ""), "detail", x.id, 'class="reference-link"')}${abilityBadges(x, e)}<div class="row-actions">${b("Read", "detail", x.id)}
         ${b("Choose", "milestone", x.id, current.signature ? "disabled" : "")}</div></article>`).join("")}</div>`) : "")
       + (current ? `<div class="play-actions">${b("Learn abilities", "open-picker", "ability", 'class="primary"')}
         ${b("Learn disciplines", "open-picker", "discipline")}</div>` : "")
-      + summary("Advancement ledger", `<ul class="ledger">${dev.history.map(x => `<li>Level ${x.at} · ${e(x.label)}<span>${x.valid ? x.price + " DP" : "Needs review"}</span>${b("Remove", "remove-advancement", `${x.at}:${x.position}`)}</li>`).join("")}</ul>
+      + summary("Advancement ledger", `<ul class="ledger">${dev.history.map(x => `<li>Level ${x.at} · ${x.kind === "card" && x.valid ? b(x.label, "detail", x.id, 'class="reference-link"') : e(x.label)}<span>${x.valid ? x.price + " DP" : "Needs review"}</span>${b("Remove", "remove-advancement", `${x.at}:${x.position}`)}</li>`).join("")}</ul>
       ${dev.issues.map(x => `<p class="warning">${e(x.message)}</p>`).join("")}`);
   }
   return `<div class="play-sheet"><header class="sheet-header">

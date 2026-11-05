@@ -52,7 +52,7 @@ export function advancement(play, model, catalog) {
         : purchase.kind === "rank" && rank <= 3 ? model.profession?.prices[purchase.id]?.[rank - 1] : undefined;
       const valid = Number.isFinite(price) && price <= remaining;
       const label = purchase.kind === "rank" ? `${purchase.id} ${rank}` : card?.name ?? purchase.id;
-      history.push({ at, position, label, price, valid });
+      history.push({ at, position, id: purchase.id, kind: purchase.kind, label, price, valid });
       if (!valid) { issues.push({ level: at, message: `Review ${label}.` }); continue; }
       remaining -= price;
       if (purchase.kind === "rank") ranks[purchase.id] = rank;

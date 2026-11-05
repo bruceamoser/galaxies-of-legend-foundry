@@ -1,3 +1,5 @@
+import { equipmentEligibility } from "./equipment.mjs";
+
 export const STEP = Object.freeze({ identity: 0, ancestry: 1, origins: 2, early: 3, class: 4, heroic: 5, equipment: 6, review: 7 });
 export const ATTRIBUTES = ["Brawn", "Fortitude", "Agility", "Guile", "Knowledge", "Reason"];
 export const createDraft = () => ({
@@ -62,7 +64,7 @@ export function evaluate(draft, catalog) {
           ? profession?.prices[purchase.id]?.[rank - 1] : undefined;
       const valid = Number.isFinite(price) && price <= remaining[phase];
       check(phase === 0 ? STEP.early : STEP.heroic, valid, `Review purchase: ${card?.name ?? purchase.id}.`);
-      ledger.push({ phase, label: purchase.kind === "rank" ? `${purchase.id} ${rank}` : card?.name ?? purchase.id, price, valid });
+      ledger.push({ phase, id: purchase.id, kind: purchase.kind, label: purchase.kind === "rank" ? `${purchase.id} ${rank}` : card?.name ?? purchase.id, price, valid });
       if (!valid) continue;
       remaining[phase] -= price;
       if (purchase.kind === "rank") ranks[purchase.id] = rank;
@@ -91,6 +93,10 @@ export function evaluate(draft, catalog) {
   const level1Choices = catalog.cards.filter(card => cardEligible(card, 1));
   const equipment = draft.gear.map(id => catalog.equipment.find(item => item.id === id));
   check(STEP.equipment, equipment.every(Boolean), "Remove unavailable equipment.");
+  for (const item of equipment.filter(Boolean)) {
+    check(STEP.equipment, equipmentEligibility(item, [...owned]),
+      `${item.name} requires ${cards.get(item.requiredAbility)?.name ?? "its training ability"}.`);
+  }
   const coins = 40 + (ancestry?.coins ?? 0) + (culture?.coins ?? 0)
     + (background?.coins ?? 0) + (profession?.coins ?? 0);
   const cost = equipment.reduce((sum, item) => sum + (item?.price ?? 0), 0);

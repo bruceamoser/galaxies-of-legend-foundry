@@ -3,6 +3,8 @@ import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.m
 import { advancement, createPlay, deathRoll, restoreHP, roll, takeDamage, MEDICAL_DOSES, removeItem, useMedicalDose } from "../src/rules/play.mjs";
 import { portable, readPortable } from "../src/rules/portable.mjs";
 import { sheet } from "./sheet.mjs";
+import { equipmentEligibility, gearNeeds, supportsGearNeed } from "../src/rules/equipment.mjs";
+import { abilityBadges, actionCounts, disciplineIcon } from "./ability-badges.mjs";
 import { builderPicker } from "./builder-picker.mjs";
 
 const libraryKey = "gol-character-library-v2";
@@ -20,6 +22,7 @@ let catalog;
 let draft = createDraft();
 let step = 0;
 let pickerQuery = "";
+let disciplineFilter = "all";
 let popup = null;
 
 let storageAvailable = true;
@@ -102,7 +105,7 @@ function origins() {
     return `<section class="choice-card">${select(kind, label, rows.map(row => ({ id: row.id,
       name: `${row.name} — ${row.rank} 1 + ${cardName(row.card)}` })))}
     ${chosen ? `<div class="origin-grants">${button(chosen.name, "origin-info", chosen.id, 'class="reference-link"')}
-    <p>${e(chosen.intro)}</p><span class="grant-chip">${e(chosen.rank)} 1</span>
+    <p>${e(chosen.intro)}</p><span class="grant-chip">${disciplineIcon(chosen.rank, e)}${e(chosen.rank)} 1</span>
     ${button(cardName(chosen.card), "detail", chosen.card, 'class="reference-link"')}
     <span class="grant-chip">+${chosen.coins} coins</span></div>` : ""}</section>`;
   }).join("")}</div>${model.duplicates ? `<p class="callout">Duplicate grants add <strong>+${model.duplicates} DP</strong> to Early learning.</p>` : ""}`;
@@ -115,7 +118,7 @@ function training(phase) {
   <div class="row-actions">${button("Learn abilities", "open-picker", "ability", 'class="primary"')}
   ${phase ? button("Learn disciplines", "open-picker", "discipline") : ""}</div>
   <h3>Purchase ledger</h3>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) =>
-    `<li>${e(x.label)} <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
+    `<li>${x.kind === "card" && x.valid ? button(x.label, "detail", x.id, 'class="reference-link"') : e(x.label)} <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
     : "<p class='muted'>No purchases yet.</p>"}`;
 }
 function chooseClass() {
@@ -134,15 +137,21 @@ function chooseClass() {
     ${draft.startingRanks.includes(x) ? "checked" : ""} ${draft.startingRanks.length === 2 && !draft.startingRanks.includes(x) ? "disabled" : ""}>
     ${e(x)} 1${model.earlyRanks[x] ? " · already known, +1 DP if chosen" : ""}</label>`).join("")}</div>
   <h3>Level-1 signature</h3><div class="signature-grid">${current.signatures.map(id => byId(catalog.cards, id)).filter(x => x?.level === "1").map(x =>
-    `<article class="choice-card ${draft.signature === x.id ? "chosen" : ""}"><h3>${e(x.name)}</h3><p>${e(x.action)} · ${e(x.attribute)} · free milestone choice</p>
+    `<article class="choice-card ${draft.signature === x.id ? "chosen" : ""}"><h3>${abilityBadges(x, e)}${e(x.name)}</h3><p>${e(x.action)} · ${e(x.attribute)} · free milestone choice</p>
     <div class="row-actions">${button("Read signature", "detail", x.id)}
     ${button(draft.signature === x.id ? "Selected" : "Choose", "select-signature", x.id, `aria-pressed="${draft.signature === x.id}"`)}</div></article>`).join("")}</div>` : ""}`;
 }
 function equipment() {
+  const needs = gearNeeds(catalog, model.owned);
   const hands = model.equipment.flatMap((item, index) => item?.hands ? [{ id: String(index + 1), name: item.name }] : []);
   return `<p>Buy equipment with starting coins, then record what is in each hand.</p>
   <p class="callout"><strong>${model.coins - model.cost} / ${model.coins} coins</strong><span>${model.bulk} / ${model.capacity} Bulk</span></p>
   ${model.bulk > model.capacity ? "<p class='warning'>Over Capacity. Apply the book’s encumbrance ruling before recording final Speed.</p>" : ""}
+  ${needs.length ? `<details class="sheet-group" open><summary>Gear for your abilities</summary>
+  <p>Use your own gear, borrow from the crew, or use an alternative the ability allows.</p>
+  <ul class="ledger">${needs.map(need => `<li><strong>${e(need.label)}</strong>
+    <span>${model.equipment.some(item => item && supportsGearNeed(item, need.label)) ? "Carried" : "Check crew access"}</span>
+    <div class="row-actions">${need.cards.map(card => button(card.name, "detail", card.id, 'class="reference-link"')).join("")}</div></li>`).join("")}</ul></details>` : ""}
   ${button("Buy inventory items", "open-picker", "equipment", 'class="primary"')}
   <h3>Carried gear</h3><ul class="ledger">${model.equipment.map((x, index) => `<li>${e(x?.name ?? "Unavailable gear")} <span>${x?.price ?? 0} coins</span>${button("Remove", "remove-gear", index)}</li>`).join("")}</ul>
   <div class="fields">${[0, 1].map(i => `<label>${i ? "Right" : "Left"} hand<select data-hand="${i}">${option("", "Empty", draft.hands[i])}${hands.map(x => option(x.id, x.name, draft.hands[i])).join("")}</select></label>`).join("")}</div>`;
@@ -152,12 +161,16 @@ function review() {
   <h3>${e(draft.name || "Unnamed explorer")} <small>Level 1</small></h3>
   <div class="fields"><div><strong>Identity</strong><p>${e(model.ancestry?.name)} · ${e(model.profession?.name)}</p><p>Galactic Standard${draft.language ? ", " + e(draft.language) : ""}</p></div>
   <div><strong>Disciplines</strong><p>${Object.entries(model.ranks).map(([d, n]) => `${e(d)} ${n}`).join(" · ") || "None yet"}</p></div></div>
-  <h3>Known abilities</h3><div class="catalog">${model.owned.map(id => `<article><strong>${e(cardName(id))}</strong>${button("Read", "detail", id)}</article>`).join("")}</div>
+  <h3>Learned abilities</h3>${actionCounts(catalog.cards.filter(x => model.owned.includes(x.id)), e)}
+  <div class="catalog">${model.owned.map(id => `<article>${button(cardName(id), "detail", id, 'class="reference-link"')}
+    ${abilityBadges(byId(catalog.cards, id), e)}</article>`).join("")}</div>
+  <details class="sheet-group"><summary>Free universal actions</summary><div class="catalog">${catalog.cards.filter(card => card.level === "Universal")
+    .map(card => `<article>${button(card.name, "detail", card.id, 'class="reference-link"')}${abilityBadges(card, e)}</article>`).join("")}</div></details>
   <details class="sheet-group"><summary>Creation ledger</summary>
   ${facts([["Early DP spent", model.pools[0] - model.remaining[0]], ["Early DP expiring", model.remaining[0]],
     ["Heroic DP spent", model.pools[1] - model.remaining[1]], ["Heroic DP expiring", model.remaining[1]],
     ["Starting coins left", model.coins - model.cost], ["Bulk / Capacity", `${model.bulk} / ${model.capacity}`]])}
-  <ul class="ledger">${model.ledger.map(row => `<li>${row.phase ? "Heroic" : "Early"} · ${e(row.label)}
+  <ul class="ledger">${model.ledger.map(row => `<li>${row.phase ? "Heroic" : "Early"} · ${row.kind === "card" && row.valid ? button(row.label, "detail", row.id, 'class="reference-link"') : e(row.label)}
     <span>${row.valid ? row.price + " DP" : "Needs review"}</span></li>`).join("")}</ul></details>
   <p class="muted">Start with zero wounds and death marks. Unspent creation DP expires.</p>
   ${model.errors.length ? button("Review missing choices", "review-issues", "") : '<p class="callout"><strong>Creation complete</strong></p>'}
@@ -225,7 +238,7 @@ function render(focusSelector) {
   const pickerScroll = oldPickerResults?.scrollTop ?? popup?.scroll ?? 0;
   const picker = popup?.picker;
   const modalBody = picker ? builderPicker({ kind: picker, phase: step === STEP.early ? 0 : 1,
-    query: pickerQuery, catalog, model, e, button, abilityReason, development: mode === "sheet" ? dev : null }) : popup?.body;
+    query: pickerQuery, catalog, model, e, button, abilityReason, filter: disciplineFilter, development: mode === "sheet" ? dev : null }) : popup?.body;
   const modal = `<dialog id="ability-detail" class="${picker ? "picker-dialog" : ""}" aria-labelledby="ability-title">${popup ? `<h2 id="ability-title">${e(popup.title)}</h2>
     ${modalBody}<div class="dialog-actions">${popup.returnTo ? button("Back to choices", "picker-back", "") : ""}
     ${button("Close", "close-popup", "")}
@@ -245,6 +258,11 @@ function render(focusSelector) {
 
 app.addEventListener("change", event => {
   const input = event.target;
+  if (input.id === "discipline-filter") {
+    disciplineFilter = input.value;
+    render("#discipline-filter");
+    return;
+  }
   if (input.id === "import-file") {
     const file = input.files[0];
     if (!file) return;
@@ -400,6 +418,7 @@ app.addEventListener("click", event => {
     case "open-picker": {
       const titles = { ability: "Learn abilities", discipline: "Learn disciplines", equipment: "Buy inventory items" };
       pickerQuery = "";
+      disciplineFilter = "all";
       popup = { title: titles[id], picker: id, restore };
       render("#picker-search");
       return;
@@ -444,6 +463,7 @@ app.addEventListener("click", event => {
     }
     case "market-buy": {
       const item = byId(catalog.equipment, id);
+      if (!equipmentEligibility(item, model.owned)) return;
       const quantity = app.querySelector(`#quantity-${CSS.escape(id)}`).valueAsNumber;
       if (!Number.isInteger(quantity) || quantity < 1 || quantity > 200 - draft.gear.length || quantity * item.price > model.coins - model.cost) {
         open("Review quantity", "<p>Choose a positive quantity you can afford with your remaining starting coins.</p>");
@@ -557,10 +577,16 @@ app.addEventListener("click", event => {
     case "item-add": {
       const item = byId(catalog.equipment, action === "item-add" ? app.querySelector("#sheet-item").value : id);
       if (!item) return;
-      open(item.name, facts([["Bulk", item.bulk], ["Hands", item.hands]]) + `<pre>${rulesMarkup(item.text)}</pre>`,
-        action === "item-add" ? { label: "Record item", action: "confirm-item", id: item.id } : undefined); return;
+      open(item.name, facts([["Bulk", item.bulk], ["Hands", item.hands]])
+        + (item.requiredAbility ? `<p>Training: ${button(cardName(item.requiredAbility), "detail", item.requiredAbility, 'class="reference-link"')}</p>` : "")
+        + `<pre>${rulesMarkup(item.text)}</pre>`,
+        action === "item-add" && equipmentEligibility(item, dev.known) ? { label: "Record item", action: "confirm-item", id: item.id } : undefined); return;
     }
-    case "confirm-item": play.items.push(id); popup = null; break;
+    case "confirm-item": {
+      const item = byId(catalog.equipment, id);
+      if (item && equipmentEligibility(item, dev.known)) play.items.push(id);
+      popup = null; break;
+    }
     case "item-remove": removeItem(play, Number(id)); break;
     case "dose": {
       const index = Number(id);

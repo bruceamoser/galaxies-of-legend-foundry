@@ -47,3 +47,23 @@ test("ancestry and origin validation route to separate builder steps", async () 
   assert.equal(result.earlyRanks.Engineering, 1);
   assert.equal(result.earlyRanks.Science, undefined);
 });
+
+test("unrestricted Novice cards spend one DP, free actions are not purchases", () => {
+  const draft = iona();
+  draft.level0.push({ kind: "card", id: "quick-look" });
+  draft.level0.push({ kind: "card", id: "basic-throw" });
+  const result = evaluate(draft, catalog);
+  assert.equal(result.remaining[0], 9);
+  assert.ok(result.owned.includes("quick-look"));
+  assert.ok(result.errors.some(x => x.message.includes("Basic Throw")));
+});
+
+test("printed equipment training is enforced without granting the item", async () => {
+  const { equipmentEligibility, gearNeeds } = await import("../src/rules/equipment.mjs");
+  const light = catalog.equipment.find(item => item.id === "light-armor");
+  assert.equal(light.requiredAbility, "wear-light-armor");
+  assert.equal(equipmentEligibility(light, []), false);
+  assert.equal(equipmentEligibility(light, ["wear-light-armor"]), true);
+  assert.ok(evaluate({ ...iona(), gear: ["light-armor"] }, catalog).errors.some(x => x.message.includes("requires Wear Light Armour")));
+  assert.ok(gearNeeds(catalog, ["field-repair", "sensor-sweep"]).some(x => x.label === "Toolkit"));
+});

@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -67,16 +68,45 @@ for slug, name, t in rows("classes"):
         ranks=re.search(r"choose two distinct rank-1 disciplines from ([^.]+)", t)[1].split(", "),
         prices=prices, role=re.search(r"(?m)^\*\*In the crew\.\*\* (.+)$", t)[1],
         signatures=re.findall(r"\]\(\.\./cards/(signature-[^)]+)\.md\)", t)))
+def item_training(text):
+    match = re.search(r"(?m)^\*\*Required ability:\*\* \[[^]]+\]\(\.\./cards/([^/)]+)\.md\)", text)
+    return match[1] if match else None
+
+
+def gear_tags(name, text):
+    tags = []
+    if re.search(r"\bRanged weapon\b", text, re.I):
+        tags.append("ranged weapon")
+    if re.search(r"\bMelee weapon\b", text, re.I):
+        tags.append("melee weapon")
+    if name == "Combat Shield":
+        tags.append("shield")
+    return tags
+
+
+def gear_needs(text):
+    gear = field(text, "Equipment / acquisition").lower()
+    needs = []
+    for label, matches in (
+        ("Toolkit", ("toolkit",)), ("Medkit", ("medkit",)),
+        ("Sensor Pack", ("sensor pack",)), ("Ranged weapon", ("ranged weapon", "sidearm")),
+        ("Melee weapon", ("melee weapon",)), ("Shield", ("ready shield",)),
+    ):
+        if any(word in gear for word in matches) and not gear.startswith("no equipment"):
+            needs.append(label)
+    return needs
+
+
 catalog["cards"] = [
     dict(id=slug, name=name, level=field(t, "Tier / minimum level"),
          dp=int(field(t, "DP")) if field(t, "DP").isdigit() else 0,
          requirement=field(t, "Requirements to learn"), action=field(t, "Action"),
-         gear=field(t, "Equipment / acquisition"), attribute=field(t, "Attribute"), text=rules(t))
+         gear=field(t, "Equipment / acquisition"), attribute=field(t, "Attribute"), gearNeeds=gear_needs(t), text=rules(t))
     for slug, name, t in rows("cards")
 ]
 catalog["equipment"] = [
     dict(id=slug, name=name, price=int(field(t, "Cost").split()[0]), category=field(t, "Category"),
-         bulk=int(field(t, "Bulk")), hands=int(field(t, "Hands")), text=rules(t))
+         bulk=int(field(t, "Bulk")), hands=int(field(t, "Hands")), requiredAbility=item_training(t), tags=gear_tags(name, t), text=rules(t))
     for slug, name, t in rows("equipment")
 ]
 t = read(design / "rules/languages.md")
@@ -100,6 +130,14 @@ catalog["conditions"] = [
     for name, effect, removal in re.findall(r"(?m)^\| ([A-Z][A-Za-z]+(?: X)?) \| ([^|]+) \| ([^|]+) \|$", conditions)
     if name != "Condition"
 ]
+icons = out / "web/assets/disciplines"
+icons.mkdir(parents=True, exist_ok=True)
+for discipline in catalog["disciplines"]:
+    glyph = design / "player-book/art/disciplines" / (discipline.lower() + ".svg")
+    read(glyph)
+    shutil.copyfile(glyph, icons / glyph.name)
+assert all(item["requiredAbility"] is None or any(card["id"] == item["requiredAbility"] for card in catalog["cards"])
+           for item in catalog["equipment"])
 read(design / "player-book/manuscript/02-creation.md")
 (out / "web/data/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
 commit = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
