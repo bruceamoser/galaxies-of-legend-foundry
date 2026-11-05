@@ -1,0 +1,9 @@
+{
+  "name": "galaxies-of-legend-foundry",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 scripts/serve-workshop.py",
+    "check": "node --check web/workshop.mjs && node --test"
+  }
+}
