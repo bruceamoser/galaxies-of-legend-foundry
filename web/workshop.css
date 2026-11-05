@@ -71,3 +71,7 @@ input[type=checkbox],input[type=radio]{inline-size:1rem;block-size:1rem;flex:0 0
 .picker-dialog .picker-context{max-height:20vh;overflow:auto;flex-shrink:0}
 .picker-dialog .picker-results{min-height:0;flex:1 1 auto}
 .picker-dialog .dialog-actions{flex-shrink:0}
+.ledger .purchase-choice span{margin-left:0}
+.ledger .purchase-name{color:var(--text)}
+.ledger .purchase-type{color:var(--accent);font-size:.78rem;font-weight:700;border:1px solid var(--edge);border-radius:4px;padding:2px 6px}
+.ledger .purchase-choice .action-code{color:#102432}

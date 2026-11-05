@@ -1,11 +1,11 @@
-import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.mjs";
+import { ATTRIBUTES, STEP, createDraft, evaluate } from "../src/rules/creation.mjs?v=ledger-rows-3";
 
 import { advancement, createPlay, deathRoll, restoreHP, roll, takeDamage, MEDICAL_DOSES, removeItem, useMedicalDose } from "../src/rules/play.mjs";
 import { portable, readPortable } from "../src/rules/portable.mjs";
 import { sheet } from "./sheet.mjs";
 import { equipmentEligibility, gearNeeds, supportsGearNeed } from "../src/rules/equipment.mjs";
 import { abilityBadges, actionCounts, disciplineIcon } from "./ability-badges.mjs";
-import { builderPicker } from "./builder-picker.mjs?v=ability-reference-2";
+import { builderPicker } from "./builder-picker.mjs?v=ledger-rows-3";
 
 const libraryKey = "gol-character-library-v2";
 const key = "gol-character-workshop-v1";
@@ -111,6 +111,16 @@ function origins() {
   }).join("")}</div>${model.duplicates ? `<p class="callout">Duplicate grants add <strong>+${model.duplicates} DP</strong> to Early learning.</p>` : ""}`;
 }
 
+function purchaseChoice(row) {
+  if (row.kind === "rank") {
+    return `<span class="purchase-name">${disciplineIcon(row.id, e)}${e(row.label)}</span>
+      <span class="purchase-type">Discipline</span>`;
+  }
+  const card = row.kind === "card" ? byId(catalog.cards, row.id) : null;
+  if (!card) return e(row.label);
+  return button(row.label, "detail", row.id, 'class="ability-reference"') + abilityBadges(card, e);
+}
+
 function training(phase) {
   const purchases = model.ledger.filter(row => row.phase === phase);
   return `<p>${phase ? "Spend this separate pool on discipline ranks and eligible Novice abilities." : "Buy eligible Novice abilities using origin grants. Class grants and discipline purchases come later."} Unspent DP expires at creation.</p>
@@ -120,9 +130,7 @@ function training(phase) {
   <h3>Purchase ledger</h3>${actionCounts(purchases.filter(row => row.valid && row.kind === "card")
     .map(row => byId(catalog.cards, row.id)).filter(Boolean), e)}
   <p class="ability-key">A Main Action · M Maneuver · R Reaction · P Passive</p>${purchases.length ? `<ol class="ledger">${purchases.map((x, index) =>
-    `<li class="purchase-row"><div class="purchase-choice">${x.kind === "card" && byId(catalog.cards, x.id)
-      ? abilityBadges(byId(catalog.cards, x.id), e) + button(x.label, "detail", x.id, 'class="ability-reference"')
-      : (x.kind === "rank" && catalog.disciplines.includes(x.id) ? disciplineIcon(x.id, e) : "") + e(x.label)}</div>
+    `<li class="purchase-row"><div class="purchase-choice">${purchaseChoice(x)}</div>
       <span>${x.valid ? `${x.price} DP` : "Needs review"}</span>${button("Remove", "remove", index)}</li>`).join("")}</ol>`
     : "<p class='muted'>No purchases yet.</p>"}`;
 }
@@ -175,7 +183,7 @@ function review() {
   ${facts([["Early DP spent", model.pools[0] - model.remaining[0]], ["Early DP expiring", model.remaining[0]],
     ["Heroic DP spent", model.pools[1] - model.remaining[1]], ["Heroic DP expiring", model.remaining[1]],
     ["Starting coins left", model.coins - model.cost], ["Bulk / Capacity", `${model.bulk} / ${model.capacity}`]])}
-  <ul class="ledger">${model.ledger.map(row => `<li>${row.phase ? "Heroic" : "Early"} · ${row.kind === "card" && row.valid ? button(row.label, "detail", row.id, 'class="reference-link"') : e(row.label)}
+  <ul class="ledger">${model.ledger.map(row => `<li class="purchase-row"><div class="purchase-choice"><small>${row.phase ? "Heroic" : "Early"} ·</small> ${purchaseChoice(row)}</div>
     <span>${row.valid ? row.price + " DP" : "Needs review"}</span></li>`).join("")}</ul></details>
   <p class="muted">Start with zero wounds and death marks. Unspent creation DP expires.</p>
   ${model.errors.length ? button("Review missing choices", "review-issues", "") : '<p class="callout"><strong>Creation complete</strong></p>'}
@@ -216,8 +224,21 @@ function closePopup() {
   render(popup ? "#picker-search" : closing?.restore);
 }
 
+function evaluateDraft() {
+  const evaluated = evaluate(draft, catalog);
+  const positions = [0, 0];
+  const purchases = [draft.level0, draft.level1];
+  return {
+    ...evaluated,
+    ledger: evaluated.ledger.map(row => {
+      const purchase = purchases[row.phase][positions[row.phase]++];
+      return { ...row, id: row.id ?? purchase?.id, kind: row.kind ?? purchase?.kind };
+    }),
+  };
+}
+
 function render(focusSelector) {
-  model = evaluate(draft, catalog);
+  model = evaluateDraft();
   persist();
   const errors = step === STEP.review ? model.errors : model.errors.filter(x => x.stage === step);
 
@@ -309,7 +330,7 @@ app.addEventListener("input", event => {
   if (input.dataset.playField === "notes") { play.notes = input.value; persist(); return; }
   if (input.dataset.field && input.type === "text") {
     draft[input.dataset.field] = input.value;
-    model = evaluate(draft, catalog);
+    model = evaluateDraft();
     app.querySelector("#step-issues").innerHTML = issueList(model.errors.filter(issue => issue.stage === step));
     persist();
     if (input.dataset.field === "name") app.querySelector(".summary h2").textContent = input.value || "New explorer";
@@ -666,7 +687,7 @@ app.addEventListener("click", event => {
 });
 
 try {
-  const response = await fetch("./data/catalog.json?v=ability-reference-2", { cache: "no-store" });
+  const response = await fetch("./data/catalog.json?v=ledger-rows-3", { cache: "no-store" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   catalog = await response.json();
   render();
